@@ -3,12 +3,13 @@ import Base from '../../../layouts/Base.astro';
 import Grid from '../../../components/Grid.astro';
 import Pager from '../../../components/Pager.astro';
 import Crumbs from '../../../components/Crumbs.astro';
-import { categories, byCat, pages, pageParam, jsonCrumbs, jsonItemList, MONEY, catBySlug, termImage, studioName, modelName, mins, abs, thumb, SITE } from '../../../lib/data';
+import { categories, byCat, pages, pageParam, jsonCrumbs, jsonItemList, MONEY, catBySlug, termImage, studioName, modelName, mins, abs, thumb, SITE, franchises } from '../../../lib/data';
 import { fitTitle, fitDescription, catIndexable } from '../../../lib/seo';
-import { moneyCopy } from '../../../lib/money-copy';
+import { moneyCopy, franchiseCopy } from '../../../lib/money-copy';
 export function getStaticPaths() {
-	const CAT_MAX_PAGES = 15; // file budget (Workers static assets: 20k files)
-	// Deep category pages are capped (file budget); every scene stays reachable via /vr-porn/ pagination, studios, models and sitemaps.
+	// 15 → 40 on 22. 11. 2026 (Workers Paid: 100k files). Deep pages put every scene within a few clicks of a category hub;
+	// at DR≈0 sitemaps alone don't get pages crawled.
+	const CAT_MAX_PAGES = 40;
 	return categories.flatMap((c) => pages(byCat.get(c.slug) ?? []).slice(0, CAT_MAX_PAGES).map((p) => ({ params: { cat: c.slug, page: pageParam(p.page) }, props: { ...p, total: Math.min(p.total, CAT_MAX_PAGES), c } })));
 }
 const { page, total, items, c } = Astro.props;
@@ -27,7 +28,10 @@ const topModels = tally((x) => x.m).slice(0, 8);
 const avgMin = all.length ? Math.round(all.reduce((a, x) => a + (x.len || 0), 0) / all.length / 60) : 0;
 const share8k = all.length ? Math.round((100 * all.filter((x) => x.res === '8K' || x.res === '12K').length) / all.length) : 0;
 const withTrailer = all.filter((x) => x.mp4).length;
-const mc = moneyCopy(c.slug, { N, count, freeFull, share8k, avgMin });
+const mc = moneyCopy(c.slug, { N, count, freeFull, share8k, avgMin }) ?? (franchises.includes(c.slug) ? franchiseCopy(c.name, { N, count, freeFull, share8k, avgMin }) : undefined);
+const isParodyHub = c.slug === 'parody' || franchises.includes(c.slug);
+const franchiseLinks = isParodyHub ? franchises.filter((f) => f !== c.slug).map((f) => catBySlug.get(f)).filter(Boolean) : [];
+const updated = all[0]?.d;
 const h1 = mc?.h1 ?? label;
 // Page 2+ starts with the page number, so a long money description can be shortened at the end without colliding.
 const desc = mc ? (page === 1 ? mc.d : fitDescription(`Page ${page}: ${mc.d}`)) : fitDescription(`${N} ${label} scenes${suffix ? ` (page ${page})` : ''} with free 180° trailers from VR Bangers, AR Porn, VR Conk & VRSmash.`, ['Preview each scene, then stream the full video in up to 8K on Quest, Pico or PC VR.'], 'Updated daily.');
@@ -42,17 +46,23 @@ const money = MONEY.filter((m) => !m.href.includes(`/${c.slug}/`));
 ---
 <Base pager={{ base, page, total: total }} image={all[0] ? abs(all[0].p || thumb(all[0])) : undefined} title={title} description={desc} path={path} nav="cats" activeChip={c.slug} noindex={noindex}
 	jsonld={[jsonCrumbs([{ name: 'Categories', path: '/category-archive/' }, { name: c.name, path: base }]), jsonItemList(items), ...faqLd,
-		{ '@context': 'https://schema.org', '@type': 'CollectionPage', name: `${h1}${suffix}`, description: desc, url: SITE + path, inLanguage: 'en', isPartOf: { '@type': 'WebSite', name: 'DudeVR', url: SITE + '/' }, ...(all[0] ? { primaryImageOfPage: abs(all[0].p || thumb(all[0])) } : {}) }]}>
+		{ '@context': 'https://schema.org', '@type': 'CollectionPage', name: `${h1}${suffix}`, description: desc, url: SITE + path, inLanguage: 'en', isPartOf: { '@type': 'WebSite', name: 'DudeVR', url: SITE + '/' }, ...(updated ? { dateModified: `${updated}T00:00:00+00:00` } : {}), ...(all[0] ? { primaryImageOfPage: abs(all[0].p || thumb(all[0])) } : {}) }]}>
 	<Crumbs items={[{ name: 'Categories', href: '/category-archive/' }, { name: c.name }]} />
 	<div class="ahead">
 		<span class="av" style="border-radius:16px;transform:rotate(-4deg)"><img width="480" height="270" decoding="async" src={termImage(byCat.get(c.slug))} alt="" /></span>
-		<div><h1>{h1}{suffix}</h1><p>{count.toLocaleString('en-US')} scenes · {c.slug === 'free-vr-porn' ? 'free full scenes first' : 'newest first'}</p></div>
+		<div><h1>{h1}{suffix}</h1><p>{count.toLocaleString('en-US')} scenes · {c.slug === 'free-vr-porn' ? 'free full scenes first' : 'newest first'}{updated && <> · updated <time datetime={updated}>{new Date(updated + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</time></>}</p></div>
 	</div>
 	{page === 1 && all.length > 0 && (
 		<p class="lead">
 			{mc ? <Fragment set:html={mc.lead} /> : <>{N} {label.toLowerCase()} scenes from {topStudios.map(([st]) => studioName(st)).join(', ')}.</>}
 			{topModels.length > 0 && <> Most featured: {topModels.slice(0, 4).map(([m], i) => <>{i > 0 && ', '}<a href={`/model/${m}/`}>{modelName(m)}</a></>)}.</>}
 		</p>
+	)}
+	{page === 1 && franchiseLinks.length > 0 && (
+		<nav class="more-cats" aria-label="Parodies by universe">
+			{c.slug !== 'parody' && <a class="chip money" href="/category/parody/">All VR parodies</a>}
+			{franchiseLinks.map((f) => <a class="chip" href={`/category/${f!.slug}/`}>{f!.name} VR porn · {f!.count}</a>)}
+		</nav>
 	)}
 	{items.length ? <Grid items={items} eagerFirst={page === 1 ? 4 : 0} /> : (
 		<div class="empty"><img src="/mascot-sticker.png" alt="" width="160" /><h2>No scenes here right now</h2><p>Studios rotate this tag — try <a href="/vr-porn/" style="color:var(--lemon)">the newest VR porn</a>.</p></div>

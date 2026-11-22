@@ -1,6 +1,6 @@
 ---
 import '../styles/site.css';
-import { SITE, VR_CAMS, GA4_ID, MONEY, catBySlug, TOP_CATS, studios, pageUrl } from '../lib/data';
+import { SITE, VR_CAMS, GA4_ID, MONEY, catBySlug, TOP_CATS, studios, pageUrl, scenes } from '../lib/data';
 
 interface Props {
 	title: string;
@@ -115,7 +115,7 @@ const vrbStudios = studios.filter((s) => s.count > 0);
 			</a>
 			<form class="search" action="/search/" method="get" role="search" autocomplete="off">
 				<label class="sr" for="q">Search VR scenes, models, categories</label>
-				<input id="q" name="q" type="search" placeholder="Search 6,000+ VR scenes, models, studios…" />
+				<input id="q" name="q" type="search" placeholder={`Search ${(Math.floor(scenes.length / 1000) * 1000).toLocaleString('en-US')}+ VR scenes, models, studios…`} />
 				<button type="submit" aria-label="Search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
 				<div class="search-drop" id="search-drop" role="listbox"></div>
 			</form>

@@ -64,9 +64,10 @@ export function moneyCopy(slug: string, x: Ctx): MoneyCopy | undefined {
 		case 'cosplay': return { t: `VR Cosplay Porn: ${N} Parody & Costume Scenes`, h1: 'VR Cosplay Porn',
 			lead: `${N} VR cosplay porn scenes. Half of them are VR Conk parodies — full sets and costumes for Marvel, DC, game and anime characters — the rest come from AR Porn and VRSmash.`,
 			d: `VR cosplay porn: ${N} parody and costume scenes — Marvel, DC, games and anime — in 8K 180°. Free trailers from VR Conk and more.` };
-		case 'japanese': return { t: `Japanese VR Porn: ${N} JAV-Style VR Scenes`, h1: 'Japanese VR Porn',
+		// "jav vr" 7.6k/mo vs "japanese vr porn" 3.4k/mo (Ahrefs US 11/2026) → JAV leads, Japanese stays in the title.
+		case 'japanese': return { t: `JAV VR Porn: ${N} Japanese VR Scenes`, h1: 'JAV VR Porn: Japanese VR Scenes',
 			lead: `${N} Japanese VR porn scenes with performers from Japan such as Marica Hase, Aizawa Haruka and Mashiro Airi, from VR Bangers and VRSmash's Japanese studios.`,
-			d: `Japanese VR porn: ${N} JAV-style scenes with Japanese babes in 180° VR. Free trailers from VR Bangers and VRSmash.` };
+			d: `JAV VR porn: ${N} Japanese VR scenes with Japanese babes in 180° 3D. From VR Bangers and VRSmash, newest first.` };
 		case '4k-vr-porn': return { t: `4K VR Porn: ${N} Scenes in 4K 180° VR`, h1: '4K VR Porn',
 			lead: `${N} VR porn scenes mastered in 4K — the earlier VR Bangers catalogue. 4K files are a third of the size of 8K and play smoothly on older headsets and phones; for a sharper picture see <a href="/category/8k-vr-porn/">8K VR porn</a>.`,
 			d: `4K VR porn: ${N} scenes in 4K 180° from VR Bangers — small files that play smoothly on any headset or phone. Free trailers.` };
@@ -101,7 +102,7 @@ export function moneyCopy(slug: string, x: Ctx): MoneyCopy | undefined {
 			lead: `${N} mature VR porn scenes with experienced older women — filmed in up to 8K 180° so they look straight at you. Also see our much bigger <a href="/category/milf/">MILF VR porn</a> section.`,
 			d: `Mature VR porn: ${N} scenes with older women in 8K 180° VR. Free trailers, then the full videos in your headset.` };
 		case '8k-vr-porn': return { t: `8K VR Porn: ${N} Scenes in Full 8K Resolution`, h1: '8K VR Porn',
-			lead: `${N} VR porn scenes shot in 8K — the sharpest stereo video you can play on a Quest 3, Pico 4 or PC headset today.`,
+			lead: `${N} VR porn scenes shot in 8K — the sharpest stereo video you can play on a Quest 3, Pico 4 or PC headset today. Each scene page shows the length, the studio and the camera setup before you get the full 8K file.`,
 			d: `8K VR porn: ${N} scenes in full 8K 180° resolution from VR Bangers, VRSmash and more. Watch free trailers first.` };
 		case 'ebony': return { t: `Ebony VR Porn: ${N} Black Babes in 8K VR`, h1: 'Ebony VR Porn',
 			lead: `${N} ebony and black VR porn scenes with performers such as Kira Noir, Ana Foxxx and Nicole Kitt, in up to 8K 180° stereo.`,
@@ -109,6 +110,20 @@ export function moneyCopy(slug: string, x: Ctx): MoneyCopy | undefined {
 		case 'pov': return { t: `POV VR Porn: ${N} Point-of-View Scenes in 8K`, h1: 'POV VR Porn',
 			lead: `${N} POV VR porn scenes — the camera is your eyes, so everything happens right in front of you in 180° 3D.`,
 			d: `POV VR porn: ${N} point-of-view scenes in 8K 180° 3D. Free trailers from VR Bangers, VRSmash, BlowVR and more.` };
+		case 'parody': return { t: `VR Porn Parody: ${N} Game, Anime & Movie Parodies`, h1: 'VR Porn Parodies',
+			lead: `${N} VR porn parodies — game, anime, comic and movie characters played by real performers in full costume, plus animated 3D parodies from VRSmash's CGI studios. Pick a universe below or browse the newest first.`,
+			d: `VR porn parodies: ${N} game, anime and movie parody scenes in 8K 180° — Overwatch, Star Wars, Marvel, Genshin and more, newest first.` };
 	}
 	return undefined;
+}
+
+/** Franchise pages (overwatch, star-wars…): "{name} vr porn" is the phrase people type (Ahrefs US 11/2026, KD 0–17). */
+export function franchiseCopy(name: string, x: Ctx): MoneyCopy {
+	const { N, count, share8k } = x;
+	return {
+		t: `${name} VR Porn: ${N} Parody Scene${count === 1 ? '' : 's'} in 180° 3D`,
+		h1: `${name} VR Porn Parodies`,
+		lead: `${N} ${name} VR porn parod${count === 1 ? 'y' : 'ies'} — the characters from the ${name} universe in costume, at life size around you${share8k ? `; ${share8k}% are filmed in 8K or higher` : ''}.`,
+		d: `${name} VR porn: ${N} parody scene${count === 1 ? '' : 's'} with ${name} characters in 180° 3D VR, newest first. Full videos in up to 8K from the studios.`,
+	};
 }

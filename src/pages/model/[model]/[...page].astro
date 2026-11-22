@@ -3,8 +3,9 @@ import Base from '../../../layouts/Base.astro';
 import Grid from '../../../components/Grid.astro';
 import Pager from '../../../components/Pager.astro';
 import Crumbs from '../../../components/Crumbs.astro';
-import { models, byModel, pages, pageParam, jsonCrumbs, jsonItemList, studioName, catName, SITE, modelBySlug, modelName, abs, thumb } from '../../../lib/data';
+import { models, byModel, pages, pageParam, jsonCrumbs, jsonItemList, studioName, catName, SITE, modelBySlug, modelName, abs, thumb, fmtLen, mins } from '../../../lib/data';
 import { fitTitle, fitDescription, modelIndexable } from '../../../lib/seo';
+import { TECH } from '../../../lib/scene-copy';
 export function getStaticPaths() {
 	return models.flatMap((m) => pages(byModel.get(m.slug) ?? []).map((p) => ({ params: { model: m.slug, page: pageParam(p.page) }, props: { ...p, m } })));
 }
@@ -14,18 +15,33 @@ const path = page === 1 ? base : `${base}page/${page}/`;
 const suffix = page > 1 ? ` – Page ${page}` : '';
 const all = byModel.get(m.slug) ?? [];
 const studiosOf = [...new Set(all.map((s) => s.st))];
-const topCats = Object.entries(all.flatMap((s) => s.c).reduce((a: Record<string, number>, c) => ((a[c] = (a[c] || 0) + 1), a), {})).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([c]) => c);
+const topCats = Object.entries(all.flatMap((s) => s.c.filter((c) => !TECH.has(c))).reduce((a: Record<string, number>, c) => ((a[c] = (a[c] || 0) + 1), a), {})).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([c]) => c);
 const n = all.length;
+// Only claim 8K when most of the catalogue is 8K (Abella Danger: 0 of 19).
+const fmtTag = all.filter((s) => s.res === '8K' || s.res === '12K').length * 2 >= n ? '8K 180°' : '180° VR';
 const costars = Object.entries(all.flatMap((s) => s.m.filter((x) => x !== m.slug)).reduce((a: Record<string, number>, x) => ((a[x] = (a[x] || 0) + 1), a), {}))
 	.sort((a, b) => b[1] - a[1]).slice(0, 10).filter(([x]) => modelBySlug.has(x));
 const desc = n
-	? fitDescription(`${m.name} VR porn: ${n} scene${n > 1 ? 's' : ''}${suffix ? ` (page ${page})` : ''} in 8K 180° from ${studiosOf.map(studioName).join(', ')}.`, [topCats.length ? `Mostly ${topCats.slice(0, 3).map((c) => catName(c).toLowerCase()).join(', ')}.` : '', 'Watch free trailers, then the full videos in your headset.'])
+	? fitDescription(`${m.name} VR porn: ${n} scene${n > 1 ? 's' : ''}${suffix ? ` (page ${page})` : ''} in ${fmtTag} from ${studiosOf.map(studioName).join(', ')}.`, [topCats.length ? `Mostly ${topCats.slice(0, 3).map((c) => catName(c).toLowerCase()).join(', ')}.` : '', all.some((s) => s.mp4) ? 'Watch free trailers, then the full videos in your headset.' : 'Pick a scene, then watch the full video in your headset.'])
 	: `${m.name} VR porn scenes and trailers on DudeVR.`;
-const title = fitTitle(`${m.name} VR Porn${suffix}`, `: ${n} Scene${n === 1 ? '' : 's'} in 8K 180° | DudeVR`, `: ${n} Scene${n === 1 ? '' : 's'} | DudeVR`, ' | DudeVR');
+const title = fitTitle(`${m.name} VR Porn${suffix}`, `: ${n} Scene${n === 1 ? '' : 's'} in ${fmtTag} | DudeVR`, `: ${n} Scene${n === 1 ? '' : 's'} | DudeVR`, ' | DudeVR');
 const fallback = n ? `<p>${m.name} has ${n} VR scene${n > 1 ? 's' : ''} on DudeVR, filmed for ${studiosOf.map(studioName).join(' and ')}. ${topCats.length ? `Most of them are tagged ${topCats.slice(0, 4).map((c) => catName(c).toLowerCase()).join(', ')}.` : ''} Every card plays the official trailer first, so you can check the camera angle and the set before you buy.</p>` : '';
+// Facts block + FAQ (page 1): everything computed from the catalogue, so each model page carries unique, checkable text.
+const yearOf = (d: string) => d.slice(0, 4);
+const newestScene = all[0], oldest = all.at(-1);
+const longest = [...all].sort((a, b) => b.len - a.len)[0];
+const n8k = all.filter((s) => s.res === '8K' || s.res === '12K').length;
+const avgMin = n ? Math.round(all.reduce((a, s) => a + s.len, 0) / n / 60) : 0;
+const solo = all.filter((s) => s.m.length === 1).length;
+const faq: [string, string][] = n ? [
+	[`How many VR porn scenes does ${m.name} have?`, `DudeVR lists ${n} VR scene${n === 1 ? '' : 's'} with ${m.name}${studiosOf.length ? ` from ${studiosOf.map(studioName).join(', ')}` : ''}${n > 1 && oldest && yearOf(oldest.d) !== yearOf(newestScene.d) ? `, released between ${yearOf(oldest.d)} and ${yearOf(newestScene.d)}` : ''}.`],
+	[`What is ${m.name}'s newest VR scene?`, `“${newestScene.t}” (${studioName(newestScene.st)}, ${new Date(newestScene.d + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}), ${mins(newestScene.len)} minutes in ${newestScene.res}.`],
+	[`Where can I watch ${m.name} in 8K VR?`, n8k ? `${n8k} of ${m.name}'s scenes are in 8K or higher. Each scene page plays a free preview; the full videos stream and download on ${studiosOf.map(studioName).join(' and ')}.` : `The full videos stream and download on ${studiosOf.map(studioName).join(' and ')}; each scene page links to the studio.`],
+] : [];
 ---
 <Base pager={{ base, page, total: total }} image={all[0] ? abs(all[0].p || thumb(all[0])) : undefined} title={title} description={desc} path={path} nav="models" noindex={!modelIndexable(m.slug)}
 	jsonld={[jsonCrumbs([{ name: 'Models', path: '/models/' }, { name: m.name, path: base }]), jsonItemList(items),
+		...(page === 1 && faq.length ? [{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) }] : []),
 		{ '@context': 'https://schema.org', '@type': 'ProfilePage', url: SITE + path, name: `${m.name} VR Porn`, inLanguage: 'en',
 			mainEntity: { '@type': 'Person', name: m.name, url: SITE + base, ...(m.img ? { image: abs(m.img) } : {}), description: `${m.name} has ${n} VR scene${n === 1 ? '' : 's'} on DudeVR${studiosOf.length ? ` from ${studiosOf.map(studioName).join(', ')}` : ''}.` } }]}>
 	<Crumbs items={[{ name: 'Models', href: '/models/' }, { name: m.name }]} />
@@ -42,4 +58,25 @@ const fallback = n ? `<p>${m.name} has ${n} VR scene${n > 1 ? 's' : ''} on DudeV
 			<div class="pill-row">{costars.map(([x, k]) => <a class="pill model-pill" href={`/model/${x}/`}>{modelName(x)} · {k}</a>)}</div></section>
 	)}
 	{page === 1 && <section class="seo-box"><div class="prose" set:html={m.desc || fallback} /></section>}
+	{page === 1 && n > 0 && (
+		<section class="seo-box">
+			<div class="prose">
+				<h2>{m.name} in VR: the numbers</h2>
+				<table>
+					<tbody>
+						<tr><th>VR scenes</th><td>{n}{solo && n > 1 ? ` (${solo} solo with you)` : ''}</td></tr>
+						<tr><th>Studios</th><td>{studiosOf.map((st, i) => <>{i > 0 && ', '}<a href={`/studio/${st}/`}>{studioName(st)}</a></>)}</td></tr>
+						{oldest && n > 1 && <tr><th>First VR scene</th><td><a href={`/${oldest.s}/`}>{oldest.t}</a> ({yearOf(oldest.d)})</td></tr>}
+						<tr><th>Newest</th><td><a href={`/${newestScene.s}/`}>{newestScene.t}</a> ({yearOf(newestScene.d)})</td></tr>
+						{longest && longest.len > 0 && <tr><th>Longest</th><td><a href={`/${longest.s}/`}>{longest.t}</a> · {fmtLen(longest.len)}</td></tr>}
+						<tr><th>In 8K or higher</th><td>{n8k} of {n}</td></tr>
+						{avgMin > 0 && <tr><th>Average length</th><td>{avgMin} min</td></tr>}
+						{topCats.length > 0 && <tr><th>Most tagged</th><td>{topCats.slice(0, 4).map((c, i) => <>{i > 0 && ', '}<a href={`/category/${c}/`}>{catName(c)}</a></>)}</td></tr>}
+					</tbody>
+				</table>
+				<h2>{m.name} VR porn: FAQ</h2>
+				{faq.map(([q, a]) => <><h3>{q}</h3><p>{a}</p></>)}
+			</div>
+		</section>
+	)}
 </Base>

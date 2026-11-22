@@ -21,10 +21,12 @@ export const abs = (u: string) => (u && u.startsWith('/') ? `https://dudevr.com$
 
 export const scenes = scenesRaw as Scene[];
 export const partner = partnerRaw as Partner[];
-const terms = termsRaw as { studios: StudioT[]; categories: Term[]; models: Term[] };
+const terms = termsRaw as { studios: StudioT[]; categories: Term[]; models: Term[]; franchises?: string[] };
 export const studios = terms.studios;
 export const categories = terms.categories;
 export const models = terms.models;
+/** Franchise category slugs (parody hubs), only those that have a page. */
+export const franchises = terms.franchises ?? [];
 
 export const sceneBySlug = new Map(scenes.map((s) => [s.s, s]));
 export const studioBySlug = new Map(studios.map((s) => [s.slug, s]));
@@ -100,26 +102,6 @@ export const MONEY = [
 // Header chips, ordered by US search demand (Ahrefs 11/2026), money pages first.
 export const TOP_CATS = ['free-vr-porn', 'anime', 'best-vr-porn', 'trans', 'gay', 'passthrough', '8k-vr-porn', 'milf', 'asian', 'blowjob', 'big-ass', 'latina', 'bbw', 'cosplay',
 	'anal', 'creampie', 'ebony', 'pov', 'japanese', 'feet', 'lesbian', 'mature', 'taboo', 'for-women', 'big-tits', 'threesome', 'redhead', 'compilation'];
-
-/** Scene description fallback for scenes without their own prose (VRSmash): factual, varied, no fluff. */
-export function autoDesc(s: Scene): string {
-	const who = s.m.map(modelName);
-	const names = who.length > 1 ? `${who.slice(0, -1).join(', ')} and ${who.at(-1)}` : who[0] || 'the cast';
-	const tags = s.c.slice(0, 5).map(catName).map((t) => t.toLowerCase());
-	const h = hash(s.s);
-	const openers = [
-		`${names} star in “${s.t}”, a ${mins(s.len)}-minute ${s.res} VR scene shot in ${s.fov}° stereo.`,
-		`“${s.t}” runs ${mins(s.len)} minutes and puts you face to face with ${names} in ${s.res} ${s.fov}° VR.`,
-		`In “${s.t}” you get ${mins(s.len)} minutes of ${s.res} virtual reality with ${names}, filmed for ${s.fov}° headsets.`,
-	];
-	const mid = tags.length ? ` Expect ${tags.slice(0, -1).join(', ')}${tags.length > 1 ? ' and ' : ''}${tags.at(-1)}.` : '';
-	const close = [
-		` The full scene streams and downloads on ${studioName(s.st)}; the preview below shows the look and the camera position.`,
-		` Watch the full video on ${studioName(s.st)} in your headset — Quest 3, Pico or PC VR all work.`,
-		` ${studioName(s.st)} hosts the full-length version in up to ${s.res}.`,
-	];
-	return `<p>${openers[h % 3]}${mid}${close[(h >> 3) % 3]}</p>`;
-}
 
 export const STUDIO_SCORE: Record<string, string> = { 'vr-bangers': '9.8', 'ar-porn': '9.5', 'vr-conk': '9.2', blowvr: '8.9', 'vrb-trans': '8.7', 'vrb-gay': '8.5', vrsmash: '8.8' };
 export const STUDIO_COLOR: Record<string, string> = { 'vr-bangers': '#ff6b5a', 'ar-porn': '#6be3b5', 'vr-conk': '#7cc4ff', blowvr: '#ffd23f', 'vrb-trans': '#f7a1d6', 'vrb-gay': '#b69cff', vrsmash: '#ff9f43' };

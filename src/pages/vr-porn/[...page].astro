@@ -12,7 +12,7 @@ const base = '/vr-porn/';
 const path = page === 1 ? base : `${base}page/${page}/`;
 const suffix = page > 1 ? ` – Page ${page}` : '';
 ---
-<Base title={`Newest VR Porn Videos in 8K${suffix} | DudeVR`} description={`${scenes.length.toLocaleString('en-US')} VR porn scenes, newest first${page > 1 ? ` (page ${page})` : ''}: free 180° trailers from VR Bangers, AR Porn, VR Conk, BlowVR and VRSmash.`}
+<Base pager={{ base, page, total: total }} title={`Newest VR Porn Videos in 8K${suffix} | DudeVR`} description={`${scenes.length.toLocaleString('en-US')} VR porn scenes, newest first${page > 1 ? ` (page ${page})` : ''}: free 180° trailers from VR Bangers, AR Porn, VR Conk, BlowVR and VRSmash.`}
 	path={path} nav="all" jsonld={[jsonCrumbs([{ name: 'VR Porn', path: base }]), jsonItemList(items)]}>
 	<Crumbs items={[{ name: 'VR Porn' }]} />
 	<div class="ahead"><div><h1>Newest VR porn{suffix}</h1><p>{scenes.length.toLocaleString('en-US')} scenes from every studio, freshest first.</p></div></div>

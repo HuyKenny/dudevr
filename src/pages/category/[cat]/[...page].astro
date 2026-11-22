@@ -3,7 +3,7 @@ import Base from '../../../layouts/Base.astro';
 import Grid from '../../../components/Grid.astro';
 import Pager from '../../../components/Pager.astro';
 import Crumbs from '../../../components/Crumbs.astro';
-import { categories, byCat, pages, pageParam, jsonCrumbs, jsonItemList, MONEY, catBySlug, termImage, studioName, modelName, mins } from '../../../lib/data';
+import { categories, byCat, pages, pageParam, jsonCrumbs, jsonItemList, MONEY, catBySlug, termImage, studioName, modelName, mins, abs, thumb, SITE } from '../../../lib/data';
 import { fitTitle, fitDescription, catIndexable } from '../../../lib/seo';
 import { moneyCopy } from '../../../lib/money-copy';
 export function getStaticPaths() {
@@ -40,11 +40,12 @@ for (const s of byCat.get(c.slug) ?? []) for (const x of s.c) if (x !== c.slug) 
 const relCats = [...co.entries()].sort((a, b) => b[1] - a[1]).map(([s]) => catBySlug.get(s)).filter(Boolean).slice(0, 18);
 const money = MONEY.filter((m) => !m.href.includes(`/${c.slug}/`));
 ---
-<Base title={title} description={desc} path={path} nav="cats" activeChip={c.slug} noindex={noindex}
-	jsonld={[jsonCrumbs([{ name: 'Categories', path: '/category-archive/' }, { name: c.name, path: base }]), jsonItemList(items), ...faqLd]}>
+<Base pager={{ base, page, total: total }} image={all[0] ? abs(all[0].p || thumb(all[0])) : undefined} title={title} description={desc} path={path} nav="cats" activeChip={c.slug} noindex={noindex}
+	jsonld={[jsonCrumbs([{ name: 'Categories', path: '/category-archive/' }, { name: c.name, path: base }]), jsonItemList(items), ...faqLd,
+		{ '@context': 'https://schema.org', '@type': 'CollectionPage', name: `${h1}${suffix}`, description: desc, url: SITE + path, inLanguage: 'en', isPartOf: { '@type': 'WebSite', name: 'DudeVR', url: SITE + '/' }, ...(all[0] ? { primaryImageOfPage: abs(all[0].p || thumb(all[0])) } : {}) }]}>
 	<Crumbs items={[{ name: 'Categories', href: '/category-archive/' }, { name: c.name }]} />
 	<div class="ahead">
-		<span class="av" style="border-radius:16px;transform:rotate(-4deg)"><img src={termImage(byCat.get(c.slug))} alt="" /></span>
+		<span class="av" style="border-radius:16px;transform:rotate(-4deg)"><img width="480" height="270" decoding="async" src={termImage(byCat.get(c.slug))} alt="" /></span>
 		<div><h1>{h1}{suffix}</h1><p>{count.toLocaleString('en-US')} scenes · {c.slug === 'free-vr-porn' ? 'free full scenes first' : 'newest first'}</p></div>
 	</div>
 	{page === 1 && all.length > 0 && (

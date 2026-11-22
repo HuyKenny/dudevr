@@ -65,9 +65,9 @@ const jsonld = [
 		<SecHead title="Trending right now" />
 		<div class="tiles">
 			{MONEY.map((m, i) => (
-				<a class="tile" href={m.href}><img src={moneyImgs[i]} alt="" loading="lazy" /><span class="tl"><b>{m.label}</b><span>Watch {m.label.toLowerCase()} trailers →</span></span></a>
+				<a class="tile" href={m.href}><img width="480" height="270" decoding="async" src={moneyImgs[i]} alt="" loading="lazy" /><span class="tl"><b>{m.label}</b><span>Watch {m.label.toLowerCase()} trailers →</span></span></a>
 			))}
-			<a class="tile" href="/vr-cams/"><img src={termImage(byCat.get('8k-vr-porn'))} alt="" loading="lazy" /><span class="tl"><b>Live VR Cams</b><span style="color:var(--coral)">Cam girls streaming in VR now →</span></span></a>
+			<a class="tile" href="/vr-cams/"><img width="480" height="270" decoding="async" src={termImage(byCat.get('8k-vr-porn'))} alt="" loading="lazy" /><span class="tl"><b>Live VR Cams</b><span style="color:var(--coral)">Cam girls streaming in VR now →</span></span></a>
 		</div>
 	</section>
 
@@ -95,7 +95,7 @@ const jsonld = [
 		<SecHead title="Popular categories" href="/category-archive/" more="All categories" />
 		<div class="cats">
 			{topCats.map((c) => (
-				<a class="cat" href={`/category/${c!.slug}/`}><img src={termImage(byCat.get(c!.slug))} alt="" loading="lazy" /><span>{c!.name}<small>{c!.count.toLocaleString('en-US')} scenes</small></span></a>
+				<a class="cat" href={`/category/${c!.slug}/`}><img width="480" height="270" decoding="async" src={termImage(byCat.get(c!.slug))} alt="" loading="lazy" /><span>{c!.name}<small>{c!.count.toLocaleString('en-US')} scenes</small></span></a>
 			))}
 		</div>
 	</section>
@@ -104,7 +104,7 @@ const jsonld = [
 		<SecHead title="VR porn stars" href="/models/" more="All models" />
 		<div class="models-grid">
 			{topModels.map((m) => (
-				<a class="model" href={`/model/${m.slug}/`}><span class="av"><img src={m.img || '/mascot-sticker.png'} alt={m.name} loading="lazy" /></span><b>{m.name}</b><small>{m.count} scenes</small></a>
+				<a class="model" href={`/model/${m.slug}/`}><span class="av"><img width="480" height="270" decoding="async" src={m.img || '/mascot-sticker.png'} alt={m.name} loading="lazy" /></span><b>{m.name}</b><small>{m.count} scenes</small></a>
 			))}
 		</div>
 	</section>

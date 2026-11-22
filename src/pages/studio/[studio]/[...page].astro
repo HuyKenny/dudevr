@@ -3,7 +3,7 @@ import Base from '../../../layouts/Base.astro';
 import Grid from '../../../components/Grid.astro';
 import Pager from '../../../components/Pager.astro';
 import Crumbs from '../../../components/Crumbs.astro';
-import { studios, byStudio, partner, pages, pageParam, jsonCrumbs, jsonItemList, fmtLen, STUDIO_SCORE, STUDIO_COLOR, STUDIO_TAGLINE, SITE, PER_PAGE } from '../../../lib/data';
+import { studios, byStudio, partner, pages, pageParam, jsonCrumbs, jsonItemList, fmtLen, STUDIO_SCORE, STUDIO_COLOR, STUDIO_TAGLINE, SITE, PER_PAGE, abs, thumb } from '../../../lib/data';
 const PARTNER_PAGES = 120; // VRSmash cards without own page: noindex pages, outbound only
 export function getStaticPaths() {
 	return studios.flatMap((st) => {
@@ -39,7 +39,7 @@ const jsonld = [jsonCrumbs([{ name: 'Studios', path: '/studios/' }, { name: st.n
 	{ '@context': 'https://schema.org', '@type': 'Review', itemReviewed: { '@type': 'Product', name: st.name, url: `https://${st.domain}/` },
 		reviewRating: { '@type': 'Rating', ratingValue: score, bestRating: '10', worstRating: '1' }, author: { '@type': 'Organization', name: 'DudeVR', url: SITE + '/' } }];
 ---
-<Base title={`${st.name} Review: ${n.toLocaleString('en-US')} VR Scenes${suffix} | DudeVR`} description={(META[st.slug] || '%d VR scenes').replace('%d', n.toLocaleString('en-US')).replace(/^(.{0,150}\.).*$/, '$1') + (page > 1 ? ` Page ${page}.` : '')}
+<Base pager={{ base, page, total: totalAll }} image={(byStudio.get(st.slug) ?? [])[0] ? abs((byStudio.get(st.slug) ?? [])[0].p || thumb((byStudio.get(st.slug) ?? [])[0])) : undefined} title={`${st.name} Review: ${n.toLocaleString('en-US')} VR Scenes${suffix} | DudeVR`} description={(META[st.slug] || '%d VR scenes').replace('%d', n.toLocaleString('en-US')).replace(/^(.{0,150}\.).*$/, '$1') + (page > 1 ? ` Page ${page}.` : '')}
 	path={path} nav="studios" noindex={isExtra} jsonld={isExtra ? [] : jsonld}>
 	<Crumbs items={[{ name: 'Studios', href: '/studios/' }, { name: st.name }]} />
 	<div class="ahead">

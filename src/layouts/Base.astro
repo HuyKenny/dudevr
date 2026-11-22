@@ -1,6 +1,6 @@
 ---
 import '../styles/site.css';
-import { SITE, VR_CAMS, GA4_ID, MONEY, catBySlug, TOP_CATS, studios } from '../lib/data';
+import { SITE, VR_CAMS, GA4_ID, MONEY, catBySlug, TOP_CATS, studios, pageUrl } from '../lib/data';
 
 interface Props {
 	title: string;
@@ -17,8 +17,9 @@ interface Props {
 	video?: string; // mp4 trailer → og:video
 	published?: string;
 	modified?: string;
+	pager?: { base: string; page: number; total: number }; // → <link rel=prev/next> (Bing still reads them)
 }
-const { title, description, path, noindex = false, image = `${SITE}/og-default.jpg`, jsonld = [], nav = '', chips = true, activeChip = '', preload, ogType = 'website', video, published, modified } = Astro.props;
+const { title, description, path, noindex = false, image = `${SITE}/og-default.jpg`, jsonld = [], nav = '', chips = true, activeChip = '', preload, ogType = 'website', video, published, modified, pager } = Astro.props;
 const canonical = SITE + path;
 const chipList = TOP_CATS.map((s) => catBySlug.get(s)).filter((c) => c && c.count > 0) as { slug: string; name: string }[];
 const year = new Date().getFullYear();
@@ -32,7 +33,9 @@ const vrbStudios = studios.filter((s) => s.count > 0);
 	<title>{title}</title>
 	<meta name="description" content={description} />
 	<link rel="canonical" href={canonical} />
-	{noindex ? <meta name="robots" content="noindex, follow" /> : <meta name="robots" content="index, follow, max-image-preview:large, max-video-preview:-1" />}
+	{noindex ? <meta name="robots" content="noindex, follow" /> : <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />}
+	{pager && pager.page > 1 && <link rel="prev" href={SITE + pageUrl(pager.base, pager.page - 1)} />}
+	{pager && pager.page < pager.total && <link rel="next" href={SITE + pageUrl(pager.base, pager.page + 1)} />}
 	<meta name="rating" content="adult" />
 	<meta name="RATING" content="RTA-5042-1996-1400-1577-RTA" />
 	<meta name="theme-color" content="#14110f" />

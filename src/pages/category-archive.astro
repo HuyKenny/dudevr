@@ -10,7 +10,7 @@ const az = [...withScenes].sort((a, b) => a.name.localeCompare(b.name));
 	<Crumbs items={[{ name: 'Categories' }]} />
 	<div class="ahead"><div><h1>VR porn categories</h1><p>{withScenes.length} categories · the biggest first, A–Z below</p></div></div>
 	<div class="cats">
-		{top.map((c) => <a class="cat" href={`/category/${c.slug}/`}><img src={termImage(byCat.get(c.slug))} alt="" loading="lazy" /><span>{c.name}<small>{c.count.toLocaleString('en-US')} scenes</small></span></a>)}
+		{top.map((c) => <a class="cat" href={`/category/${c.slug}/`}><img width="480" height="270" decoding="async" src={termImage(byCat.get(c.slug))} alt="" loading="lazy" /><span>{c.name}<small>{c.count.toLocaleString('en-US')} scenes</small></span></a>)}
 	</div>
 	<section class="sec"><div class="sec-head"><h2>All categories A–Z</h2></div>
 		<div class="cat-list">{az.map((c) => <a href={`/category/${c.slug}/`}>{c.name}<small>{c.count}</small></a>)}</div>

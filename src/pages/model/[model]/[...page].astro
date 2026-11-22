@@ -3,7 +3,7 @@ import Base from '../../../layouts/Base.astro';
 import Grid from '../../../components/Grid.astro';
 import Pager from '../../../components/Pager.astro';
 import Crumbs from '../../../components/Crumbs.astro';
-import { models, byModel, pages, pageParam, jsonCrumbs, jsonItemList, studioName, catName, SITE, modelBySlug, modelName } from '../../../lib/data';
+import { models, byModel, pages, pageParam, jsonCrumbs, jsonItemList, studioName, catName, SITE, modelBySlug, modelName, abs, thumb } from '../../../lib/data';
 import { fitTitle, fitDescription, modelIndexable } from '../../../lib/seo';
 export function getStaticPaths() {
 	return models.flatMap((m) => pages(byModel.get(m.slug) ?? []).map((p) => ({ params: { model: m.slug, page: pageParam(p.page) }, props: { ...p, m } })));
@@ -24,12 +24,13 @@ const desc = n
 const title = fitTitle(`${m.name} VR Porn${suffix}`, `: ${n} Scene${n === 1 ? '' : 's'} in 8K 180° | DudeVR`, `: ${n} Scene${n === 1 ? '' : 's'} | DudeVR`, ' | DudeVR');
 const fallback = n ? `<p>${m.name} has ${n} VR scene${n > 1 ? 's' : ''} on DudeVR, filmed for ${studiosOf.map(studioName).join(' and ')}. ${topCats.length ? `Most of them are tagged ${topCats.slice(0, 4).map((c) => catName(c).toLowerCase()).join(', ')}.` : ''} Every card plays the official trailer first, so you can check the camera angle and the set before you buy.</p>` : '';
 ---
-<Base title={title} description={desc} path={path} nav="models" noindex={!modelIndexable(m.slug)}
+<Base pager={{ base, page, total: total }} image={all[0] ? abs(all[0].p || thumb(all[0])) : undefined} title={title} description={desc} path={path} nav="models" noindex={!modelIndexable(m.slug)}
 	jsonld={[jsonCrumbs([{ name: 'Models', path: '/models/' }, { name: m.name, path: base }]), jsonItemList(items),
-		{ '@context': 'https://schema.org', '@type': 'Person', name: m.name, url: SITE + base, ...(m.img ? { image: m.img } : {}) }]}>
+		{ '@context': 'https://schema.org', '@type': 'ProfilePage', url: SITE + path, name: `${m.name} VR Porn`, inLanguage: 'en',
+			mainEntity: { '@type': 'Person', name: m.name, url: SITE + base, ...(m.img ? { image: abs(m.img) } : {}), description: `${m.name} has ${n} VR scene${n === 1 ? '' : 's'} on DudeVR${studiosOf.length ? ` from ${studiosOf.map(studioName).join(', ')}` : ''}.` } }]}>
 	<Crumbs items={[{ name: 'Models', href: '/models/' }, { name: m.name }]} />
 	<div class="ahead">
-		<span class="av"><img src={m.img || '/mascot-sticker.png'} alt={m.name} /></span>
+		<span class="av"><img width="480" height="270" decoding="async" src={m.img || '/mascot-sticker.png'} alt={m.name} /></span>
 		<div><h1>{m.name} VR Porn{suffix}</h1><p>{n} VR scene{n === 1 ? '' : 's'} · {studiosOf.map(studioName).join(' · ')}</p></div>
 		{n > 0 && <div class="actions"><a class="btn btn-lemon btn-big" href={all[0].aff} rel="sponsored noopener" target="_blank" data-aff="model_cta" data-studio={all[0].st} data-scene={all[0].s}>▶ Watch {m.name}'s Full Videos in VR →</a></div>}
 	</div>

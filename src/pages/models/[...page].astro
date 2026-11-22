@@ -10,12 +10,12 @@ const { page, total, items } = Astro.props;
 const suffix = page > 1 ? ` – Page ${page}` : '';
 const n = models.filter((m) => m.count > 0).length;
 ---
-<Base title={`VR Porn Stars: ${n.toLocaleString('en-US')} Models in 8K${suffix} | DudeVR`} description={`${n.toLocaleString('en-US')} VR porn stars ranked by number of scenes${page > 1 ? ` (page ${page}, ${items[0].name} to ${items.at(-1).name})` : ''} — every 180° VR scene of your favourite performer, with free trailers.`}
+<Base pager={{ base: '/models/', page, total }} title={`VR Porn Stars: ${n.toLocaleString('en-US')} Models in 8K${suffix} | DudeVR`} description={`${n.toLocaleString('en-US')} VR porn stars ranked by number of scenes${page > 1 ? ` (page ${page}, ${items[0].name} to ${items.at(-1).name})` : ''} — every 180° VR scene of your favourite performer, with free trailers.`}
 	path={page === 1 ? '/models/' : `/models/page/${page}/`} nav="models" jsonld={[jsonCrumbs([{ name: 'Models', path: '/models/' }])]}>
 	<Crumbs items={[{ name: 'Models' }]} />
 	<div class="ahead"><div><h1>VR porn stars{suffix}</h1><p>{n.toLocaleString('en-US')} performers, most scenes first</p></div></div>
 	<div class="models-grid">
-		{items.map((m, i) => <a class="model" href={`/model/${m.slug}/`}><span class="av"><img src={m.img || '/mascot-sticker.png'} alt={m.name} loading={i < 12 ? 'eager' : 'lazy'} /></span><b>{m.name}</b><small>{m.count} scenes</small></a>)}
+		{items.map((m, i) => <a class="model" href={`/model/${m.slug}/`}><span class="av"><img width="480" height="270" decoding="async" src={m.img || '/mascot-sticker.png'} alt={m.name} loading={i < 12 ? 'eager' : 'lazy'} /></span><b>{m.name}</b><small>{m.count} scenes</small></a>)}
 	</div>
 	<Pager base="/models/" page={page} total={total} />
 </Base>

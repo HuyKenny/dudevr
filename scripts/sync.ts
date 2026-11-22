@@ -44,12 +44,13 @@ const FEEDS: { studio: string; url: string }[] = [
 	{ studio: 'vrb-trans', url: 'https://content.vrbtrans.com/api/vrbcash/v1/videos' },
 	{ studio: 'vrb-gay', url: 'https://content.vrbgay.com/api/vrbcash/v1/videos' },
 ];
-const VRSMASH_SINCE = process.env.VRSMASH_SINCE || '2025-07-01';
+// 2025-07 → 2024-01 on 22. 11. 2026 (Workers Paid allows 100k files; ~+2.3k curated pages). Next wave: 6K ≥ 20 min, after Bing data.
+const VRSMASH_SINCE = process.env.VRSMASH_SINCE || '2024-01-01';
 const VRSMASH_FEED = 'https://www.vrsmash.com/api/content/v1/feed/videos';
 // Performers with real "{name} vr" search demand (Ahrefs US, 11/2026) whose scenes are mostly on VRSmash:
 // their VRSmash scenes get pages and they get a model page even with a single scene.
-const HOT_MODELS = new Set(['ava-addams', 'kelsi-monroe', 'leah-gotti', 'richelle-ryan', 'violet-myers', 'lena-paul', 'cory-chase', 'nicole-aniston',
-	'dillion-harper', 'melztube', 'anna-bell-peaks', 'kendra-lust', 'mia-malkova', 'krissy-lynn']);
+// List + volumes live in seed/hot-models.json (refresh with Ahrefs keywords-explorer-overview "{name} vr").
+const HOT_MODELS = new Set(Object.keys((JSON.parse(readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../seed/hot-models.json'), 'utf8')) as { models: Record<string, number> }).models));
 
 // Slugs that must never be used by a scene (they are sections of the site).
 const RESERVED = new Set(['category', 'studio', 'model', 'models', 'studios', 'categories', 'vr-porn', 'page', 'search', 'category-archive',
@@ -302,7 +303,9 @@ if (vsTxt) {
 			((tagList.includes('Hentai') || tagList.includes('CGI') || tagList.includes('Anime')) && date >= '2024' && toSec(len) >= 90) ||
 			(tagList.includes('Gay') && toSec(len) >= 600) ||
 			(tagList.some((x) => /^trans/i.test(x)) && date >= '2025' && modelList.length > 0 && toSec(len) >= 600) ||
-			(modelList.some((n) => HOT_MODELS.has(slugify(n))) && toSec(len) >= 600));
+			(modelList.some((n) => HOT_MODELS.has(slugify(n))) && toSec(len) >= 600) ||
+			// Parodies feed the franchise pages ("overwatch vr porn" 600/mo, "star wars vr porn" 300/mo, KD 0–17).
+			((/parody/i.test(t) || tagList.includes('Parody')) && date >= '2024' && toSec(len) >= 300));
 		const indexable = !dup && !!poster && (curated || niche);
 		if (indexable) {
 			const slug = claimSlug(key, m[1], date.slice(0, 10));
@@ -334,6 +337,31 @@ const all = [...scenes.values()].sort((a, b) => (b.d === a.d ? a.s.localeCompare
 //  - free-vr-porn: the full free scenes (flag free=1, shown first) + every scene with a free 180° trailer
 //  - anime: anime + hentai + CGI-animated scenes
 //  - the other keyword pages (content gap 11/2026) collect their synonym tags; the source tags keep their own pages/URLs
+// [category slug, display name, title regex]. Existing tag slugs (overwatch, star-wars, marvel…) keep their URLs.
+const FRANCHISES: [string, string, RegExp][] = [
+	['overwatch', 'Overwatch', /\boverwatch\b|\bd\.va\b|widowmaker/i],
+	['star-wars', 'Star Wars', /star wars|\bleia\b|ahsoka|mandalorian|\bjedi\b|\bsith\b|\bpadm[eé]\b/i],
+	['cyberpunk', 'Cyberpunk', /cyberpunk/i],
+	['one-piece', 'One Piece', /one piece|nico robin|boa hancock/i],
+	['marvel', 'Marvel', /marvel|black widow|scarlet witch|spider-?(man|gwen|woman)|\bwanda\b|x-men|deadpool|elektra|avengers|she-hulk|captain marvel/i],
+	['dc-comics', 'DC Comics', /harley quinn|batman|catwoman|wonder woman|poison ivy|supergirl|\bdc\b/i],
+	['final-fantasy', 'Final Fantasy', /final fantasy|\btifa\b|aerith/i],
+	['genshin-impact', 'Genshin Impact', /genshin/i],
+	['resident-evil', 'Resident Evil', /resident evil|ada wong|jill valentine|lady dimitrescu/i],
+	['league-of-legends', 'League of Legends', /league of legends|\blol:|\bahri\b|\bjinx\b|arcane/i],
+	['pokemon', 'Pokémon', /pok[eé]mon/i],
+	['wednesday', 'Wednesday Addams', /wednesday addams|\bwednesday\b.*parody/i],
+	['the-witcher', 'The Witcher', /witcher|yennefer|triss merigold/i],
+	['game-of-thrones', 'Game of Thrones', /game of thrones|daenerys|cersei|khaleesi/i],
+	['tomb-raider', 'Tomb Raider', /tomb raider|lara croft/i],
+	['mortal-kombat', 'Mortal Kombat', /mortal kombat/i],
+	['lord-of-the-rings', 'Lord of the Rings', /lord of the rings|galadriel|hobbit|arwen/i],
+	['harry-potter', 'Harry Potter', /harry potter|hermione|hogwarts/i],
+	['zelda', 'Zelda', /\bzelda\b/i],
+	['naruto', 'Naruto', /naruto|hinata hyuga|tsunade/i],
+	['fortnite', 'Fortnite', /fortnite/i],
+	['disney', 'Disney', /disney|\b(frozen|moana|rapunzel|cinderella|ariel)\b.*parody/i],
+];
 const UNIONS: [string, (s: Scene) => boolean][] = [
 	['anime', (s) => s.c.includes('hentai') || s.c.includes('cgi-vr-porn')],
 	['trans', (s) => s.st === 'vrb-trans' || ['shemale-fucks-girl', 'shemale-fucks-guy', 'trans-fucks-guy', 'trans-fucks-girl', 'ladyboy'].some((c) => s.c.includes(c))],
@@ -344,7 +372,12 @@ const UNIONS: [string, (s: Scene) => boolean][] = [
 	['compilation', (s) => s.c.includes('compilations')],
 	['feet', (s) => s.c.includes('footjob')],
 	['best-vr-porn', (s) => s.c.some((c) => /^best-of-20\d\d$/.test(c) || c === '2025-top-100-videos' || c === 'best-ar-porn-of-2025' || c === 'award-winning')],
+	['parody', (s) => /\bparody\b/i.test(s.t)],
+	// Franchise pages: the feeds tag parodies inconsistently, the titles don't lie ("Overwatch: Mei (A Porn Parody)").
+	...FRANCHISES.map(([slug, , re]) => [slug, (s: Scene) => re.test(s.t)] as [string, (s: Scene) => boolean]),
 ];
+for (const [slug, name] of FRANCHISES) catNames.set(slug, name);
+const FRANCHISE_SET = new Set(FRANCHISES.map(([slug]) => slug));
 for (const s of all) {
 	if (s.c.includes('free-vr-porn') || s.c.includes('free-video')) (s as any).free = 1;
 	if ((s as any).free || s.mp4) { if (!s.c.includes('free-vr-porn')) s.c.push('free-vr-porn'); }
@@ -355,7 +388,7 @@ const catCount = new Map<string, number>(), modelCount = new Map<string, number>
 for (const s of all) { for (const c of s.c) catCount.set(c, (catCount.get(c) || 0) + 1); for (const m of s.m) modelCount.set(m, (modelCount.get(m) || 0) + 1); }
 const wpCatSet = new Set(wpCats.map((t) => t.slug)), wpModelSet = new Set(wpModels.map((t) => t.slug));
 const catPages = [...catCount.keys(), ...wpCatSet].filter((c, i, a) => a.indexOf(c) === i && c !== 'uncategorized' && c !== 'guides')
-	.filter((c) => wpCatSet.has(c) || (catCount.get(c) || 0) >= 12);
+	.filter((c) => wpCatSet.has(c) || (catCount.get(c) || 0) >= (FRANCHISE_SET.has(c) ? 5 : 12));
 // Every VR Bangers-network performer gets a page (studio prose links to them); VRSmash-only names need 2+ scenes.
 const vrbModels = new Set(all.filter((s) => s.src !== 'vrsmash').flatMap((s) => s.m));
 const modelPages = [...new Set([...modelCount.keys(), ...wpModelSet])].filter((m) => wpModelSet.has(m) || vrbModels.has(m) || (modelCount.get(m) || 0) >= 2 || (HOT_MODELS.has(m) && (modelCount.get(m) || 0) >= 1));
@@ -406,6 +439,7 @@ const terms = {
 		return { slug, name: decode(w?.name || modelNames.get(slug) || slug), count: modelCount.get(slug) || 0, desc: fixLinks(cleanProse(w?.description || '')),
 			img: first?.th?.[1] || first?.th?.[0] || first?.p || '' }; })
 		.sort((a, b) => b.count - a.count),
+	franchises: FRANCHISES.map(([slug]) => slug).filter((c) => catKeep.has(c)),
 };
 
 // ─── 6. Write ─────────────────────────────────────────────────────────────

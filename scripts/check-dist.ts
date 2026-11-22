@@ -1,7 +1,8 @@
 /**
  * Post-build guard (hard fail):
  *  1. URL parity — every URL from the old WordPress sitemaps exists in dist/ or has a 301 in _redirects.
- *  2. File count stays under the free Workers static-assets limit (20 000).
+ *  2. File count stays under the Workers Paid static-assets limit (100 000/version; account f3ab is on Workers Paid,
+ *     same as auty.cz) with 5 % headroom.
  *  3. No credential-looking strings in dist/.
  */
 import { readFileSync, existsSync, readdirSync, statSync } from 'node:fs';
@@ -22,7 +23,7 @@ for (const u of old) {
 let files = 0, bytes = 0;
 const walk = (d: string) => { for (const f of readdirSync(d)) { const p = join(d, f); const st = statSync(p); if (st.isDirectory()) walk(p); else { files++; bytes += st.size; } } };
 walk(DIST);
-const LIMIT = 20000;
+const LIMIT = 95000; // 100k hard limit on Workers Paid, keep 5 % headroom
 console.log(`dist: ${files} files, ${(bytes / 1e6).toFixed(1)} MB · old URLs ${old.length}, missing ${missing.length}`);
 let fail = false;
 if (missing.length) { console.error('Old WordPress URLs without page or redirect:\n' + missing.slice(0, 50).join('\n')); fail = true; }

@@ -2,8 +2,9 @@
 import Base from '../layouts/Base.astro';
 import Grid from '../components/Grid.astro';
 import Crumbs from '../components/Crumbs.astro';
-import { scenes, type Scene, studioBySlug, fmtLen, isoLen, mins, studioName, modelName, catName, related, autoDesc, thumb, jsonCrumbs, SITE, STUDIO_SCORE, hash, abs } from '../lib/data';
+import { scenes, type Scene, studioBySlug, fmtLen, isoLen, mins, studioName, modelName, catName, related, thumb, jsonCrumbs, SITE, STUDIO_SCORE, hash, abs } from '../lib/data';
 import { guides, type Guide } from '../lib/guides';
+import { sceneCopy, contentTags, upNext } from '../lib/scene-copy';
 import { sceneTitle, sceneDesc, fitTitle, fitDescription } from '../lib/seo';
 
 export function getStaticPaths() {
@@ -12,11 +13,12 @@ export function getStaticPaths() {
 const { scene, guide } = Astro.props as { scene?: Scene; guide?: Guide };
 
 let s = scene!;
-let rel: Scene[] = [], studio, desc = '', title = '', metaDesc = '', jsonld: object[] = [];
+let rel: Scene[] = [], next: Scene[] = [], studio, desc = '', title = '', metaDesc = '', jsonld: object[] = [];
 if (scene) {
 	studio = studioBySlug.get(s.st)!;
-	rel = related(s, 16);
-	desc = s.desc && s.desc.replace(/<[^>]+>/g, '').trim().length > 80 ? s.desc : autoDesc(s);
+	rel = related(s, 10);
+	next = upNext(s, new Set(rel.map((r) => r.s)));
+	desc = s.desc && s.desc.replace(/<[^>]+>/g, '').trim().length > 80 ? s.desc : sceneCopy(s);
 	title = sceneTitle(s);
 	metaDesc = sceneDesc(s);
 	const crumbItems = [{ name: studioName(s.st), path: `/studio/${s.st}/` }, { name: s.t, path: `/${s.s}/` }];
@@ -107,7 +109,7 @@ const barLabel = scene ? `Liked the preview? Watch the full ${s.len ? `${mins(s.
 			</div>
 			<div class="upnext">
 				<h2>Up next</h2>
-				{rel.slice(0, 10).map((r) => (
+				{(next.length ? next : rel).slice(0, 10).map((r) => (
 					<a class="mini" href={`/${r.s}/`}>
 						<span class="th"><img src={thumb(r)} alt="" loading="lazy" width="150" height="84" /><span class="b b-len">{fmtLen(r.len)}</span></span>
 						<span><b>{r.t}</b><small>{studioName(r.st)}{r.m[0] ? ` · ${modelName(r.m[0])}` : ''}</small></span>

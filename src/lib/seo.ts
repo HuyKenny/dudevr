@@ -1,6 +1,7 @@
 // SEO helpers: one place for titles, descriptions and the "is this page indexable" rule.
 // Every template and the sitemap read from here so they can never disagree.
 import { scenes, type Scene, studioName, modelName, catName, mins, categories, models, byCat, byModel } from './data';
+import { TECH } from './scene-copy';
 
 export const TITLE_MAX = 60;
 export const DESC_MAX = 155;
@@ -73,10 +74,11 @@ const sceneDescs = new Map<string, string>();
 		const who = names(s.m.slice(0, 3).map(modelName));
 		const facts = `${s.len ? `${mins(s.len)}-min ` : ''}${s.res} ${s.fov}° VR scene from ${studioName(s.st)}`;
 		const lead = who ? `${who} in “${s.t}”: ${facts}.` : `“${s.t}”: ${facts}.`;
-		const tags = s.c.slice(0, 3).map((c) => catName(c).toLowerCase());
+		const tags = s.c.filter((c) => !TECH.has(c)).slice(0, 3).map((c) => catName(c).toLowerCase());
 		const opt = [...sentences(s.desc).slice(0, 2), tags.length ? `Tags: ${tags.join(', ')}.` : ''].filter(Boolean);
-		let d = fitDescription(lead, opt, 'Free 180° trailer.');
-		if (used.has(d)) d = fitDescription(`${lead} Released ${s.d}.`, opt, 'Free 180° trailer.');
+		const tail = s.mp4 || s.emb ? 'Free 180° trailer.' : 'Full scene on the studio site.';
+		let d = fitDescription(lead, opt, tail);
+		if (used.has(d)) d = fitDescription(`${lead} Released ${s.d}.`, opt, tail);
 		sceneDescs.set(s.s, d); used.add(d);
 	}
 }

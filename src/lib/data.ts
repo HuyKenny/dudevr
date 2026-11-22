@@ -39,6 +39,8 @@ const index = (key: (s: Scene) => string[]) => {
 export const byStudio = index((s) => [s.st]);
 export const byCat = index((s) => s.c);
 export const byModel = index((s) => s.m);
+// Free VR porn: full free scenes first, then free trailers (newest first within each group).
+byCat.get('free-vr-porn')?.sort((a, b) => ((b as any).free ? 1 : 0) - ((a as any).free ? 1 : 0) || (b.d === a.d ? a.s.localeCompare(b.s) : b.d.localeCompare(a.d)));
 
 /** Scenes whose own page carries a real playable trailer — used for hero/featured spots. */
 export const playable = scenes.filter((s) => s.mp4);

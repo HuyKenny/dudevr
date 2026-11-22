@@ -1,15 +1,16 @@
 {
-	// dudevr.com — pure static site on Workers static assets. No Worker script: every request is a static-asset
-	// request (free, unlimited); old URLs are handled by _redirects, misses get 404.html. Nothing here is billed.
+	// dudevr.com — static site on Workers static assets. Assets are served first (free, unlimited); the tiny Worker in
+	// worker/index.ts runs ONLY when no asset matched (404s): it 301s old/unknown URLs to the nearest real page.
 	"name": "dudevr",
+	"main": "worker/index.ts",
 	"compatibility_date": "2026-11-01",
 	"workers_dev": false,
 	"routes": [{ "pattern": "dudevr.com/*", "zone_name": "dudevr.com" }],
 	"preview_urls": false,
 	"assets": {
 		"directory": "./dist",
-		"html_handling": "auto-trailing-slash",
-		"not_found_handling": "404-page"
+		"binding": "ASSETS",
+		"html_handling": "auto-trailing-slash"
 	},
 	"observability": { "enabled": false }
 }

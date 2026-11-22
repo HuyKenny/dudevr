@@ -124,13 +124,13 @@ const CAT_SYNONYMS: Record<string, string> = {
 	'blond': 'blonde', 'czech': 'czech-girls', 'ar-porn': 'passthrough', 'tattooed': 'tattoo', 'shaved-pussy': 'shaved', 'oral': 'blowjob',
 	'4k-shemale-vr-porn': 'trans', '5k-shemale-vr-porn': 'trans', '6k-shemale-vr-porn': 'trans', '8k-shemale-vr-porn': 'trans', 'shemale': 'trans', 'transgender': 'trans',
 	'4k-gay-vr-porn': 'gay', '8k-gay-vr-porn': 'gay', 'best-vr-porn-of-2025': 'best-of-2025', 'best-vr-porn-of-2024': 'best-of-2024', 'best-vr-porn-of-2023': 'best-of-2023',
-	'best-vr-porn-of-2022': 'best-of-2022', '12k-vr-porn': '12k-camera', 'balls-licking': 'ball-sucking', 'balls-sucking': 'ball-sucking', 'cum-in-pussy': 'creampie',
+	'best-vr-porn-of-2022': 'best-of-2022', '12k-vr-porn': '12k-camera', 'balls-licking': 'ball-sucking', 'balls-sucking': 'ball-sucking', 'ball-licking': 'ball-sucking', 'pov-vr': 'pov', 'pov-sex': 'pov', 'cum-in-pussy': 'creampie',
 	'big-boobs': 'big-tits', 'natural-boobs': 'natural-tits', 'small-boobs': 'small-tits', 'boobjob': 'titty-fuck', 'titjob': 'titty-fuck', 'ebony-girls': 'ebony', 'black': 'ebony',
 	'stepmother': 'stepmom', 'step-mom': 'stepmom', 'step-sister': 'stepsister', 'step-dad': 'stepdad', '6k': '6k-vr-porn', '8k': '8k-vr-porn', '4k': '4k-vr-porn', '180': '180-vr', '360': '360-vr',
 	'passthrough-ar': 'passthrough', 'mixed-reality': 'passthrough', 'cgi': 'cgi-vr-porn', 'red-head': 'redhead', 'ginger': 'redhead', 'ass': 'big-ass', 'pov-blowjob': 'blowjob',
 };
 // Feed labels that are noise for taxonomy (formats, internal flags).
-const CAT_DROP = new Set(['3d', 'hd', 'pov', 'vr', 'vr-porn', 'virtual-reality', 'free-video', 'the-girl-of-the-month', 'vr-bangers', 'braindance', 'uncategorized', 'bonus-videos', 'nude', 'standing', 'sitting', 'laying', 'moaning']);
+const CAT_DROP = new Set(['3d', 'hd', 'vr', 'vr-porn', 'virtual-reality', 'free-video', 'the-girl-of-the-month', 'vr-bangers', 'braindance', 'uncategorized', 'bonus-videos', 'nude', 'standing', 'sitting', 'laying', 'moaning']);
 const normCat = (name: string) => { const s = slugify(name); if (CAT_DROP.has(s)) return ''; return CAT_SYNONYMS[s] ?? s; };
 
 // ─── Load seed ────────────────────────────────────────────────────────────
@@ -317,24 +317,64 @@ for (const s of scenes.values()) {
 
 // ─── 5. Taxonomies ────────────────────────────────────────────────────────
 const all = [...scenes.values()].sort((a, b) => (b.d === a.d ? a.s.localeCompare(b.s) : b.d.localeCompare(a.d)));
+// Money pages (Bing traffic drivers) get the whole matching intent, not just the literal tag:
+//  - free-vr-porn: the full free scenes (flag free=1, shown first) + every scene with a free 180° trailer
+//  - anime: anime + hentai + CGI-animated scenes
+for (const s of all) {
+	if (s.c.includes('free-vr-porn') || s.c.includes('free-video')) (s as any).free = 1;
+	if ((s as any).free || s.mp4) { if (!s.c.includes('free-vr-porn')) s.c.push('free-vr-porn'); }
+	if ((s.c.includes('hentai') || s.c.includes('cgi-vr-porn')) && !s.c.includes('anime')) s.c.push('anime');
+}
 const catCount = new Map<string, number>(), modelCount = new Map<string, number>();
 for (const s of all) { for (const c of s.c) catCount.set(c, (catCount.get(c) || 0) + 1); for (const m of s.m) modelCount.set(m, (modelCount.get(m) || 0) + 1); }
 const wpCatSet = new Set(wpCats.map((t) => t.slug)), wpModelSet = new Set(wpModels.map((t) => t.slug));
 const catPages = [...catCount.keys(), ...wpCatSet].filter((c, i, a) => a.indexOf(c) === i && c !== 'uncategorized' && c !== 'guides')
 	.filter((c) => wpCatSet.has(c) || (catCount.get(c) || 0) >= 12);
-const modelPages = [...new Set([...modelCount.keys(), ...wpModelSet])].filter((m) => wpModelSet.has(m) || (modelCount.get(m) || 0) >= 2);
+// Every VR Bangers-network performer gets a page (studio prose links to them); VRSmash-only names need 2+ scenes.
+const vrbModels = new Set(all.filter((s) => s.src !== 'vrsmash').flatMap((s) => s.m));
+const modelPages = [...new Set([...modelCount.keys(), ...wpModelSet])].filter((m) => wpModelSet.has(m) || vrbModels.has(m) || (modelCount.get(m) || 0) >= 2);
 const catKeep = new Set(catPages), modelKeep = new Set(modelPages);
 for (const s of all) { s.c = s.c.filter((c) => catKeep.has(c)); s.m = s.m.filter((m) => modelKeep.has(m)); }
 
+// ─── 5b. Internal links inside prose: every href must hit a real page (else remap or unwrap) ──
+const studioSet = new Set(STUDIOS.map((x) => x.slug));
+const sceneSet = new Set(all.map((x) => x.s));
+const feedSlugToScene = new Map<string, string>();
+for (const [slug, e] of Object.entries(registry)) { const m = /\/([^/]+)$/.exec(e.k); if (m && sceneSet.has(slug)) feedSlugToScene.set(m[1], slug); }
+const STATIC_PATHS = new Set(['/', '/vr-porn/', '/category-archive/', '/studios/', '/models/', '/about/', '/contact/', '/dmca/', '/affiliate-disclosure/',
+	'/privacy-cookies/', '/cookie-policy/', '/2257/', '/terms/', ...wpPosts.filter((p) => !p.studio?.length).map((p) => `/${p.slug}/`)]);
+const ALIAS: Record<string, string> = { '/categories/': '/category-archive/', '/videos/': '/vr-porn/', '/video/': '/vr-porn/', '/pornstars/': '/models/', '/vr-porn-videos/': '/vr-porn/' };
+let linkFixed = 0, linkDropped = 0;
+function resolvePath(path: string): string | null {
+	let p = path.split(/[?#]/)[0].toLowerCase();
+	if (!p.endsWith('/')) p += '/';
+	if (STATIC_PATHS.has(p)) return p;
+	if (ALIAS[p]) return ALIAS[p];
+	const seg = p.split('/').filter(Boolean);
+	if (seg.length === 1 && sceneSet.has(seg[0])) return p;
+	if (seg[0] === 'category' && seg[1]) { const c = catKeep.has(seg[1]) ? seg[1] : CAT_SYNONYMS[seg[1]] ?? normCat(seg[1]); return c && catKeep.has(c) ? `/category/${c}/` : null; }
+	if (seg[0] === 'model' && seg[1]) return modelKeep.has(seg[1]) ? `/model/${seg[1]}/` : null;
+	if (seg[0] === 'studio' && seg[1]) return studioSet.has(seg[1]) ? `/studio/${seg[1]}/` : null;
+	if ((seg[0] === 'video' || seg[0] === 'videos') && seg[1]) { const sc = sceneSet.has(seg[1]) ? seg[1] : feedSlugToScene.get(seg[1]); return sc ? `/${sc}/` : null; }
+	return null;
+}
+const fixLinks = (html: string) => html.replace(/<a href="(\/[^"]*)">([\s\S]*?)<\/a>/g, (m, href: string, txt: string) => {
+	const to = resolvePath(href);
+	if (to === null) { linkDropped++; if (process.env.DVR_DEBUG_LINKS) console.log("drop", href); return txt; }
+	if (to !== href) linkFixed++;
+	return `<a href="${to}">${txt}</a>`;
+});
+for (const s of all) if (s.desc) s.desc = fixLinks(s.desc);
+
 const terms = {
 	studios: STUDIOS.map((s) => ({ slug: s.slug, name: s.name, domain: s.domain, aff: s.token ? `https://${s.domain}/?link_data=${s.token}` : `https://www.vrsmash.com/`,
-		count: all.filter((x) => x.st === s.slug).length, desc: cleanProse(wpStudios.find((w) => w.slug === s.slug)?.description || '') })),
+		count: all.filter((x) => x.st === s.slug).length, desc: fixLinks(cleanProse(wpStudios.find((w) => w.slug === s.slug)?.description || '')) })),
 	categories: catPages.map((slug) => { const w = wpCats.find((t) => t.slug === slug);
-		return { slug, name: decode(w?.name || catNames.get(slug) || slug), count: catCount.get(slug) || 0, desc: cleanProse(w?.description || '') }; })
+		return { slug, name: decode(w?.name || catNames.get(slug) || slug), count: catCount.get(slug) || 0, desc: fixLinks(cleanProse(w?.description || '')) }; })
 		.sort((a, b) => b.count - a.count),
 	models: modelPages.map((slug) => { const w = wpModels.find((t) => t.slug === slug);
 		const first = all.find((x) => x.m.includes(slug));
-		return { slug, name: decode(w?.name || modelNames.get(slug) || slug), count: modelCount.get(slug) || 0, desc: cleanProse(w?.description || ''),
+		return { slug, name: decode(w?.name || modelNames.get(slug) || slug), count: modelCount.get(slug) || 0, desc: fixLinks(cleanProse(w?.description || '')),
 			img: first?.th?.[1] || first?.th?.[0] || first?.p || '' }; })
 		.sort((a, b) => b.count - a.count),
 };
@@ -344,8 +384,18 @@ writeFileSync(join(OUT, 'scenes.json'), JSON.stringify(all));
 writeFileSync(join(OUT, 'partner.json'), JSON.stringify(partner.sort((a, b) => b.d.localeCompare(a.d))));
 writeFileSync(join(OUT, 'terms.json'), JSON.stringify(terms));
 writeFileSync(join(OUT, 'meta.json'), JSON.stringify({ built: new Date().toISOString(), stats, scenes: all.length, archived, vrsmashIndexed: vsIx, partner: partner.length }));
+// Fallback index for the 404 Worker (worker/index.ts): only slugs + names, no prose.
+writeFileSync(join(OUT, 'fallback.json'), JSON.stringify({
+	cats: terms.categories.filter((c) => c.count > 0).map((c) => [c.slug, c.count]),
+	syn: Object.fromEntries(Object.entries(CAT_SYNONYMS).filter(([, v]) => catKeep.has(v))),
+	models: terms.models.filter((m) => m.count > 0).map((m) => m.slug),
+	studios: STUDIOS.map((x) => x.slug),
+	scenes: all.map((x) => x.s),
+	feed: Object.fromEntries([...feedSlugToScene].filter(([k, v]) => k !== v)),
+}));
 // Registry only grows; sort for stable diffs.
 writeFileSync(join(SEED, 'registry.json'), JSON.stringify(Object.fromEntries(Object.entries(registry).sort(([a], [b]) => a.localeCompare(b))), null, 0).replace(/},"/g, '},\n"') + '\n');
 
 console.log('feeds', stats);
+console.log(`internal prose links: ${linkFixed} remapped, ${linkDropped} unwrapped (no such page)`);
 console.log(`scenes ${all.length} (archived WP ${archived}, VRSmash pages ${vsIx}) · partner cards ${partner.length} · categories ${catPages.length} · models ${modelPages.length}`);

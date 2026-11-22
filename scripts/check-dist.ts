@@ -31,11 +31,13 @@ if (files > LIMIT) { console.error(`Too many files: ${files} > ${LIMIT}`); fail 
 const seen = { title: new Map<string, string>(), desc: new Map<string, string>() };
 const problems: Record<string, string[]> = { dupTitle: [], dupDesc: [], longTitle: [], noCanonical: [], noH1: [], noDesc: [], emptyIndexable: [] };
 const noindexPaths = new Set<string>();
+const linkTargets = new Map<string, string>(); // internal href → first page that links it
 const htmlWalk = (d: string) => { for (const f of readdirSync(d)) { const p = join(d, f); if (statSync(p).isDirectory()) htmlWalk(p); else if (f === 'index.html') check(p); } };
 const dec = (x: string) => x.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 function check(p: string) {
 	const html = readFileSync(p, 'utf8');
 	const path = '/' + p.slice(DIST.length + 1).replace(/index\.html$/, '');
+	for (const m of html.matchAll(/href="(\/[^"#?]*)/g)) if (!linkTargets.has(m[1])) linkTargets.set(m[1], path);
 	if (/<meta name="robots" content="noindex/.test(html)) { noindexPaths.add(path); return; }
 	if (path === '/404/') return;
 	const t = dec(/<title>([^<]*)<\/title>/.exec(html)?.[1] ?? '');
@@ -49,6 +51,13 @@ function check(p: string) {
 	if (/^\/(category|model)\//.test(path) && !html.includes('class="card"')) problems.emptyIndexable.push(path);
 }
 htmlWalk(DIST);
+// every internal link must point at a real file (no internal 404s, no internal redirects)
+const broken: string[] = [];
+for (const [href, from] of linkTargets) {
+	const f = href.endsWith('/') ? join(DIST, decodeURI(href), 'index.html') : join(DIST, decodeURI(href));
+	if (!existsSync(f)) broken.push(`${href}  (from ${from})`);
+}
+if (broken.length) { console.error(`SEO broken internal links: ${broken.length}\n  ${broken.slice(0, 10).join('\n  ')}`); fail = true; }
 // noindex pages must not be in any sitemap
 const inSitemap: string[] = [];
 for (const f of readdirSync(DIST)) if (/^sitemap-.*\.xml$/.test(f)) for (const m of readFileSync(join(DIST, f), 'utf8').matchAll(/<loc>https:\/\/dudevr\.com([^<]*)<\/loc>/g)) if (noindexPaths.has(m[1])) inSitemap.push(m[1]);

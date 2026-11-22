@@ -10,3 +10,5 @@ public/t/
 public/_redirects
 public/_headers
 .build.log
+.404-cf.json
+.links.txt

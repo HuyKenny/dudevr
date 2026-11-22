@@ -183,6 +183,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .ahead h1 { font: 800 clamp(24px, 3.4vw, 36px)/1.1 var(--display); margin: 0; letter-spacing: -.02em; }
 .ahead p { margin: 4px 0 0; color: var(--muted); }
 .ahead .actions { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+.lead { max-width: 920px; color: var(--muted); font-size: 16px; margin: 4px 0 18px; }
+.lead a { color: var(--paper); text-decoration: underline; text-decoration-color: var(--lemon); text-underline-offset: 3px; }
 .sort { display: flex; gap: 6px; margin: 12px 0 18px; flex-wrap: wrap; }
 .sort button { padding: 6px 12px; border-radius: 8px; border: 2px solid var(--line); background: var(--ink-2); font-weight: 600; font-size: 13px; color: var(--muted); }
 .sort button[aria-pressed='true'] { background: var(--paper); color: var(--ink); border-color: #000; }

@@ -4,6 +4,7 @@ import Grid from '../../../components/Grid.astro';
 import Pager from '../../../components/Pager.astro';
 import Crumbs from '../../../components/Crumbs.astro';
 import { categories, byCat, pages, pageParam, jsonCrumbs, jsonItemList, MONEY, catBySlug, termImage } from '../../../lib/data';
+import { fitTitle, fitDescription, catIndexable } from '../../../lib/seo';
 export function getStaticPaths() {
 	// Deep category pages are capped (file budget); every scene stays reachable via /vr-porn/ pagination, studios, models and sitemaps.
 	return categories.flatMap((c) => pages(byCat.get(c.slug) ?? []).slice(0, 20).map((p) => ({ params: { cat: c.slug, page: pageParam(p.page) }, props: { ...p, total: Math.min(p.total, 20), c } })));
@@ -14,14 +15,17 @@ const path = page === 1 ? base : `${base}page/${page}/`;
 const suffix = page > 1 ? ` – Page ${page}` : '';
 const label = /porn|\bvr\b/i.test(c.name) ? c.name : `${c.name} VR Porn`;
 const count = (byCat.get(c.slug) ?? []).length;
-const desc = `Watch ${count.toLocaleString('en-US')} ${label} scenes on DudeVR — free VR trailers from VR Bangers, AR Porn, VR Conk & more, then stream the full immersive video in up to 8K.`;
+const N = count.toLocaleString('en-US');
+const desc = fitDescription(`${N} ${label} scenes${suffix ? ` (page ${page})` : ''} with free 180° trailers from VR Bangers, AR Porn, VR Conk & VRSmash.`, ['Preview each scene, then stream the full video in up to 8K on Quest, Pico or PC VR.'], 'Updated daily.');
+const title = fitTitle(`${label}${suffix}`, `: ${N} Scenes in 8K | DudeVR`, ` – ${N} Scenes | DudeVR`, ' | DudeVR');
+const noindex = !catIndexable(c.slug);
 // Related categories: co-occurring tags in this category, money pages always first.
 const co = new Map<string, number>();
 for (const s of byCat.get(c.slug) ?? []) for (const x of s.c) if (x !== c.slug) co.set(x, (co.get(x) || 0) + 1);
 const relCats = [...co.entries()].sort((a, b) => b[1] - a[1]).map(([s]) => catBySlug.get(s)).filter(Boolean).slice(0, 18);
 const money = MONEY.filter((m) => !m.href.includes(`/${c.slug}/`));
 ---
-<Base title={`${label}: ${count.toLocaleString('en-US')} Scenes in 8K${suffix} | DudeVR`} description={desc} path={path} nav="cats" activeChip={c.slug}
+<Base title={title} description={desc} path={path} nav="cats" activeChip={c.slug} noindex={noindex}
 	jsonld={[jsonCrumbs([{ name: 'Categories', path: '/category-archive/' }, { name: c.name, path: base }]), jsonItemList(items)]}>
 	<Crumbs items={[{ name: 'Categories', href: '/category-archive/' }, { name: c.name }]} />
 	<div class="ahead">

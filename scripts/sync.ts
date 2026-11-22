@@ -306,6 +306,15 @@ if (vsTxt) {
 	}
 }
 
+// ─── 4b. Images that lived on the old WordPress (now locked) → local copies in public/legacy ──
+const legacyName = (u: string) => u.split('/').pop()!.replace(/\.[a-z0-9]+$/i, '').toLowerCase().replace(/[^a-z0-9._-]/g, '-') + '.webp';
+for (const s of scenes.values()) {
+	if (s.p && /\/\/(www\.)?dudevr\.com\/wp-content\/uploads\//.test(s.p)) {
+		const f = legacyName(s.p);
+		s.p = existsSync(join(ROOT, 'public/legacy', f)) ? `/legacy/${f}` : '';
+	}
+}
+
 // ─── 5. Taxonomies ────────────────────────────────────────────────────────
 const all = [...scenes.values()].sort((a, b) => (b.d === a.d ? a.s.localeCompare(b.s) : b.d.localeCompare(a.d)));
 const catCount = new Map<string, number>(), modelCount = new Map<string, number>();

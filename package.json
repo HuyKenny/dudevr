@@ -9,7 +9,7 @@
     "sync:offline": "node --experimental-strip-types scripts/sync.ts --offline",
     "prebuild": "node --experimental-strip-types scripts/build-redirects.ts",
     "build": "astro build",
-    "postbuild": "node --experimental-strip-types scripts/check-dist.ts",
+    "postbuild": "node --experimental-strip-types scripts/build-csp.ts && node --experimental-strip-types scripts/check-dist.ts",
     "dev": "astro dev",
     "assets": "node scripts/assets.mjs"
   },

@@ -28,9 +28,13 @@ let done = 0, failed = 0;
 const queue = todo.slice(0, MAX);
 async function one(s) {
 	try {
-		const r = await fetch(s.p, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; DudeVR-thumbs/1.0)' }, signal: AbortSignal.timeout(30000) });
-		if (!r.ok) throw new Error(String(r.status));
-		const buf = Buffer.from(await r.arrayBuffer());
+		let buf;
+		if (s.p.startsWith('/')) buf = readFileSync('public' + s.p); // local legacy copy
+		else {
+			const r = await fetch(s.p, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; DudeVR-thumbs/1.0)' }, signal: AbortSignal.timeout(30000) });
+			if (!r.ok) throw new Error(String(r.status));
+			buf = Buffer.from(await r.arrayBuffer());
+		}
 		await sharp(buf).resize(480, 270, { fit: 'cover', position: 'attention' }).webp({ quality: 66, effort: 4 }).toFile(`${OUT}/${s.s}.webp`);
 		map[s.s] = `/t/${s.s}.webp`;
 		done++;

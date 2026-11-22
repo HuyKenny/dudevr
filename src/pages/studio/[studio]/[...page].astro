@@ -39,13 +39,13 @@ const jsonld = [jsonCrumbs([{ name: 'Studios', path: '/studios/' }, { name: st.n
 	{ '@context': 'https://schema.org', '@type': 'Review', itemReviewed: { '@type': 'Product', name: st.name, url: `https://${st.domain}/` },
 		reviewRating: { '@type': 'Rating', ratingValue: score, bestRating: '10', worstRating: '1' }, author: { '@type': 'Organization', name: 'DudeVR', url: SITE + '/' } }];
 ---
-<Base title={`${st.name} Review: ${n.toLocaleString('en-US')} VR Porn Scenes in 8K${suffix} | DudeVR`} description={(META[st.slug] || '%d VR scenes').replace('%d', n.toLocaleString('en-US'))}
+<Base title={`${st.name} Review: ${n.toLocaleString('en-US')} VR Scenes${suffix} | DudeVR`} description={(META[st.slug] || '%d VR scenes').replace('%d', n.toLocaleString('en-US')).replace(/^(.{0,150}\.).*$/, '$1') + (page > 1 ? ` Page ${page}.` : '')}
 	path={path} nav="studios" noindex={isExtra} jsonld={isExtra ? [] : jsonld}>
 	<Crumbs items={[{ name: 'Studios', href: '/studios/' }, { name: st.name }]} />
 	<div class="ahead">
 		<span class="av" style={`border-radius:16px;background:${STUDIO_COLOR[st.slug]};display:grid;place-items:center;font:800 30px var(--display);color:var(--ink)`}>{st.name.slice(0, 2)}</span>
 		<div><h1>{st.name}{suffix}</h1><p>{STUDIO_TAGLINE[st.slug]} · {n.toLocaleString('en-US')} scenes · our score <b style="color:var(--lemon)">{score}/10</b></p></div>
-		<div class="actions"><a class="btn btn-lemon btn-big" href={st.aff} rel="sponsored nofollow noopener" target="_blank" data-aff="studio_banner" data-studio={st.slug}>Visit {st.name} →</a></div>
+		<div class="actions"><a class="btn btn-lemon btn-big" href={st.aff} rel="sponsored noopener" target="_blank" data-aff="studio_banner" data-studio={st.slug}>Visit {st.name} →</a></div>
 	</div>
 	{isExtra ? (
 		<>
@@ -53,11 +53,11 @@ const jsonld = [jsonCrumbs([{ name: 'Studios', path: '/studios/' }, { name: st.n
 			<div class="grid">
 				{extra.map((x: any) => (
 					<article class="card">
-						<a class="th" href={x.aff} rel="sponsored nofollow noopener" target="_blank" data-aff="partner_card" data-studio="vrsmash">
+						<a class="th" href={x.aff} rel="sponsored noopener" target="_blank" data-aff="partner_card" data-studio="vrsmash">
 							<img src={x.p} alt={x.t} loading="lazy" width="480" height="270" />
 							<span class="b b-res">{x.res}</span>{x.len > 0 && <span class="b b-len">{fmtLen(x.len)}</span>}
 						</a>
-						<div class="meta"><h3><a href={x.aff} rel="sponsored nofollow noopener" target="_blank" data-aff="partner_card" data-studio="vrsmash">{x.t}</a></h3><div class="sub"><span class="models">{x.m.join(', ')}</span> <span class="ext">↗</span></div></div>
+						<div class="meta"><h3><a href={x.aff} rel="sponsored noopener" target="_blank" data-aff="partner_card" data-studio="vrsmash">{x.t}</a></h3><div class="sub"><span class="models">{x.m.join(', ')}</span> <span class="ext">↗</span></div></div>
 					</article>
 				))}
 			</div>

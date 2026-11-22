@@ -24,7 +24,8 @@ const moneyImgs = MONEY.map((m) => termImage(byCat.get(m.href.split('/')[2])));
 const jsonld = [
 	{ '@context': 'https://schema.org', '@type': 'WebSite', name: 'DudeVR', url: SITE + '/',
 		potentialAction: { '@type': 'SearchAction', target: `${SITE}/search/?q={search_term_string}`, 'query-input': 'required name=search_term_string' } },
-	{ '@context': 'https://schema.org', '@type': 'Organization', name: 'DudeVR', url: SITE + '/', logo: `${SITE}/icon-512.png` },
+	{ '@context': 'https://schema.org', '@type': 'Organization', name: 'DudeVR', url: SITE + '/', logo: `${SITE}/icon-512.png`, email: 'info@dudevr.com',
+		contactPoint: { '@type': 'ContactPoint', contactType: 'customer support', email: 'info@dudevr.com', url: `${SITE}/contact/` } },
 ];
 ---
 <Base title="DudeVR – VR Porn Trailers in 8K from Top Studios" description={`Preview ${total.toLocaleString('en-US')} VR porn scenes before you buy: official 180° trailers from VR Bangers, AR Porn, VR Conk, BlowVR and VRSmash, sorted by star, studio and category.`} path="/" nav="home" jsonld={jsonld} preload={hero.p}>
@@ -66,7 +67,7 @@ const jsonld = [
 			{MONEY.map((m, i) => (
 				<a class="tile" href={m.href}><img src={moneyImgs[i]} alt="" loading="lazy" /><span class="tl"><b>{m.label}</b><span>Watch {m.label.toLowerCase()} trailers →</span></span></a>
 			))}
-			<a class="tile" href={VR_CAMS} rel="sponsored nofollow noopener" target="_blank" data-aff="home_tile_vrcams"><img src={termImage(byCat.get('passthrough'))} alt="" loading="lazy" /><span class="tl"><b>Live VR Cams</b><span style="color:var(--coral)">Models streaming in VR now ↗</span></span></a>
+			<a class="tile" href={VR_CAMS} rel="sponsored noopener" target="_blank" data-aff="home_tile_vrcams"><img src={termImage(byCat.get('passthrough'))} alt="" loading="lazy" /><span class="tl"><b>Live VR Cams</b><span style="color:var(--coral)">Models streaming in VR now ↗</span></span></a>
 		</div>
 	</section>
 

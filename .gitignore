@@ -9,3 +9,4 @@ src/data/*.json
 public/t/
 public/_redirects
 public/_headers
+.build.log

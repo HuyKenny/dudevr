@@ -16,6 +16,8 @@ export const SITE = 'https://dudevr.com';
 export const PER_PAGE = 40; // 8 full rows of 5 on desktop
 export const VR_CAMS = 'https://www.sexlikereal.com/vr-cam-girls?a=690b8265580cda31a7057b98';
 export const GA4_ID = 'G-7R93X0W1DD';
+/** Absolute URL for meta tags, JSON-LD and sitemaps (local images are stored as /path). */
+export const abs = (u: string) => (u && u.startsWith('/') ? `https://dudevr.com${u}` : u);
 
 export const scenes = scenesRaw as Scene[];
 export const partner = partnerRaw as Partner[];

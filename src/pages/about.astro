@@ -1,0 +1,24 @@
+---
+import Base from '../layouts/Base.astro';
+import Crumbs from '../components/Crumbs.astro';
+import { scenes, studios, models, STUDIO_SCORE, SITE, jsonCrumbs } from '../lib/data';
+const vrb = studios.filter((s) => s.count > 0);
+---
+<Base title="About DudeVR: How We Pick VR Porn Studios | DudeVR" description="What DudeVR is, where the trailers come from, how we score VR porn studios and how the site earns money. Adults only, no full videos hosted." path="/about/" chips={false}
+	jsonld={[jsonCrumbs([{ name: 'About', path: '/about/' }]), { '@context': 'https://schema.org', '@type': 'AboutPage', name: 'About DudeVR', url: `${SITE}/about/` }]}>
+	<Crumbs items={[{ name: 'About' }]} />
+	<article style="margin-top:18px">
+		<h1 style="font:800 clamp(26px,3.4vw,38px)/1.1 var(--display);margin:0 0 18px">About DudeVR</h1>
+		<div class="prose">
+			<p>DudeVR is a directory of official VR porn trailers. We list {scenes.length.toLocaleString('en-US')} scenes with {models.length.toLocaleString('en-US')} performers from {vrb.length} studios, and every scene page plays the studio's own 180° preview so you can judge the camera position, the set and the picture before paying for anything.</p>
+			<h2>Where the scenes come from</h2>
+			<p>Scene data — titles, cast, length, resolution and trailers — comes straight from the studios' public partner feeds and is refreshed every night. We do not upload, re-encode or host full videos. When a studio removes a scene, our page stays available with its last known details so old links never break.</p>
+			<h2>How we score studios</h2>
+			<p>Each studio gets a score out of 10 based on three things we can check: picture quality in a headset (resolution, stereo alignment, lighting), how regularly new scenes are released, and how comfortable the scenes are to watch (camera height, stitching, distance). Current scores: {vrb.map((s, i) => <>{i > 0 && ', '}<a href={`/studio/${s.slug}/`}>{s.name}</a> {STUDIO_SCORE[s.slug]}</>)}.</p>
+			<h2>How DudeVR makes money</h2>
+			<p>Buttons such as “Watch in VR” lead to the studios' websites. If you buy a membership there, the studio may pay us a commission — it never changes your price. These links are marked as sponsored. Details are on the <a href="/affiliate-disclosure/">affiliate disclosure</a> page.</p>
+			<h2>Adults only</h2>
+			<p>Everything on DudeVR is intended for adults (18+). All performers were at least 18 years old at the time of filming; the producing studios keep the records required by 18 U.S.C. § 2257 (see our <a href="/2257/">2257 statement</a>). Rights holders can reach us through the <a href="/dmca/">DMCA page</a> or the <a href="/contact/">contact page</a>.</p>
+		</div>
+	</article>
+</Base>

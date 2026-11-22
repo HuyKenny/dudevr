@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+import Crumbs from '../components/Crumbs.astro';
+import { SITE, jsonCrumbs } from '../lib/data';
+---
+<Base title="Contact DudeVR | DudeVR" description="Contact DudeVR about a broken trailer, a wrong performer name, a content removal (DMCA) or a studio partnership. We answer within a few working days." path="/contact/" chips={false}
+	jsonld={[jsonCrumbs([{ name: 'Contact', path: '/contact/' }]), { '@context': 'https://schema.org', '@type': 'ContactPage', name: 'Contact DudeVR', url: `${SITE}/contact/` }]}>
+	<Crumbs items={[{ name: 'Contact' }]} />
+	<article style="margin-top:18px">
+		<h1 style="font:800 clamp(26px,3.4vw,38px)/1.1 var(--display);margin:0 0 18px">Contact</h1>
+		<div class="prose">
+			<p>Write to <a href="mailto:info@dudevr.com">info@dudevr.com</a>. We read every message and usually reply within a few working days.</p>
+			<h2>What to include</h2>
+			<ul>
+				<li><strong>Broken trailer or wrong details:</strong> the page address and what is wrong.</li>
+				<li><strong>Content removal:</strong> follow the steps on the <a href="/dmca/">DMCA page</a> so we can act quickly.</li>
+				<li><strong>Studios and partners:</strong> your feed or affiliate programme details.</li>
+			</ul>
+			<p>We do not sell memberships or handle billing — questions about a purchase belong to the studio you bought from.</p>
+		</div>
+	</article>
+</Base>

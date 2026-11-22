@@ -8,7 +8,7 @@ const pt = s.c.includes('passthrough') || s.c.includes('ai-passthrough') || s.st
 ---
 <article class="card">
 	<a class="th" href={`/${s.s}/`} data-frames={frames || undefined} aria-label={s.t}>
-		<img src={thumb(s)} alt={s.t} width="480" height="270" loading={eager ? 'eager' : 'lazy'} decoding="async" fetchpriority={eager ? 'high' : undefined} onerror="this.onerror=null;this.src='/mascot-sticker.png';this.style.objectFit='contain';this.style.padding='18%'" />
+		<img src={thumb(s)} alt={s.t} width="480" height="270" loading={eager ? 'eager' : 'lazy'} decoding="async" fetchpriority={eager ? 'high' : undefined} />
 		<span class={`b b-res${s.res === '8K' || s.res === '12K' ? ' r8k' : ''}`}>{s.res}</span>
 		{s.d >= NEW_CUTOFF && <span class="b b-new">NEW</span>}
 		{pt && <span class="b b-pt">Passthrough</span>}

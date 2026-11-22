@@ -3,7 +3,8 @@
 	// request (free, unlimited); old URLs are handled by _redirects, misses get 404.html. Nothing here is billed.
 	"name": "dudevr",
 	"compatibility_date": "2026-11-01",
-	"workers_dev": true,
+	"workers_dev": false,
+	"routes": [{ "pattern": "dudevr.com/*", "zone_name": "dudevr.com" }],
 	"preview_urls": false,
 	"assets": {
 		"directory": "./dist",

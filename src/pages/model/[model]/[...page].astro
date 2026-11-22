@@ -1,0 +1,35 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Grid from '../../../components/Grid.astro';
+import Pager from '../../../components/Pager.astro';
+import Crumbs from '../../../components/Crumbs.astro';
+import { models, byModel, pages, pageParam, jsonCrumbs, jsonItemList, studioName, catName, SITE } from '../../../lib/data';
+export function getStaticPaths() {
+	return models.flatMap((m) => pages(byModel.get(m.slug) ?? []).map((p) => ({ params: { model: m.slug, page: pageParam(p.page) }, props: { ...p, m } })));
+}
+const { page, total, items, m } = Astro.props;
+const base = `/model/${m.slug}/`;
+const path = page === 1 ? base : `${base}page/${page}/`;
+const suffix = page > 1 ? ` – Page ${page}` : '';
+const all = byModel.get(m.slug) ?? [];
+const studiosOf = [...new Set(all.map((s) => s.st))];
+const topCats = Object.entries(all.flatMap((s) => s.c).reduce((a: Record<string, number>, c) => ((a[c] = (a[c] || 0) + 1), a), {})).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([c]) => c);
+const n = all.length;
+const desc = n
+	? `${m.name} VR porn: ${n} scene${n > 1 ? 's' : ''} in 8K 180° from ${studiosOf.map(studioName).join(', ')}. Watch free trailers on DudeVR, then the full videos in your headset.`
+	: `${m.name} VR porn scenes and trailers on DudeVR.`;
+const fallback = n ? `<p>${m.name} has ${n} VR scene${n > 1 ? 's' : ''} on DudeVR, filmed for ${studiosOf.map(studioName).join(' and ')}. ${topCats.length ? `Most of them are tagged ${topCats.slice(0, 4).map((c) => catName(c).toLowerCase()).join(', ')}.` : ''} Every card plays the official trailer first, so you can check the camera angle and the set before you buy.</p>` : '';
+---
+<Base title={`${m.name} VR Porn: ${n} Scene${n === 1 ? '' : 's'} in 8K 180°${suffix} | DudeVR`} description={desc} path={path} nav="models"
+	jsonld={[jsonCrumbs([{ name: 'Models', path: '/models/' }, { name: m.name, path: base }]), jsonItemList(items),
+		{ '@context': 'https://schema.org', '@type': 'Person', name: m.name, url: SITE + base, ...(m.img ? { image: m.img } : {}) }]}>
+	<Crumbs items={[{ name: 'Models', href: '/models/' }, { name: m.name }]} />
+	<div class="ahead">
+		<span class="av"><img src={m.img || '/mascot-sticker.png'} alt={m.name} /></span>
+		<div><h1>{m.name}{suffix}</h1><p>{n} VR scene{n === 1 ? '' : 's'} · {studiosOf.map(studioName).join(' · ')}</p></div>
+	</div>
+	<div class="more-cats">{topCats.map((c) => <a class="chip" href={`/category/${c}/`}>{catName(c)}</a>)}</div>
+	<Grid items={items} eagerFirst={page === 1 ? 4 : 0} />
+	<Pager base={base} page={page} total={total} />
+	{page === 1 && <section class="seo-box"><div class="prose" set:html={m.desc || fallback} /></section>}
+</Base>

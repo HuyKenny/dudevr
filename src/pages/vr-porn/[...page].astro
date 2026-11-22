@@ -1,0 +1,21 @@
+---
+import Base from '../../layouts/Base.astro';
+import Grid from '../../components/Grid.astro';
+import Pager from '../../components/Pager.astro';
+import Crumbs from '../../components/Crumbs.astro';
+import { scenes, pages, pageParam, jsonCrumbs, jsonItemList } from '../../lib/data';
+export function getStaticPaths() {
+	return pages(scenes).map((p) => ({ params: { page: pageParam(p.page) }, props: p }));
+}
+const { page, total, items } = Astro.props;
+const base = '/vr-porn/';
+const path = page === 1 ? base : `${base}page/${page}/`;
+const suffix = page > 1 ? ` – Page ${page}` : '';
+---
+<Base title={`Newest VR Porn Videos in 8K${suffix} | DudeVR`} description={`Browse ${scenes.length.toLocaleString('en-US')} VR porn scenes, newest first: free 180° trailers from VR Bangers, AR Porn, VR Conk, BlowVR and VRSmash${suffix ? ', page ' + page : ''}.`}
+	path={path} nav="all" jsonld={[jsonCrumbs([{ name: 'VR Porn', path: base }]), jsonItemList(items)]}>
+	<Crumbs items={[{ name: 'VR Porn' }]} />
+	<div class="ahead"><div><h1>Newest VR porn{suffix}</h1><p>{scenes.length.toLocaleString('en-US')} scenes from every studio, freshest first.</p></div></div>
+	<Grid items={items} eagerFirst={page === 1 ? 4 : 0} />
+	<Pager base={base} page={page} total={total} />
+</Base>

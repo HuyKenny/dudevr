@@ -1,0 +1,9 @@
+---
+import Card from './Card.astro';
+import type { Scene } from '../lib/data';
+interface Props { items: Scene[]; eagerFirst?: number; showStudio?: boolean; tight?: boolean }
+const { items, eagerFirst = 0, showStudio = true, tight = false } = Astro.props;
+---
+<div class={`grid${tight ? ' tight' : ''}`}>
+	{items.map((s, i) => <Card s={s} eager={i < eagerFirst} showStudio={showStudio} />)}
+</div>

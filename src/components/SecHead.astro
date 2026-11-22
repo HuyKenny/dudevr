@@ -1,0 +1,11 @@
+---
+interface Props { title: string; href?: string; more?: string; count?: number; h1?: boolean; sticker?: string }
+const { title, href, more = 'See all', count, h1 = false, sticker } = Astro.props;
+const H = h1 ? 'h1' : 'h2';
+---
+<div class="sec-head">
+	{sticker && <span class="tag-sticker">{sticker}</span>}
+	<H>{href ? <a href={href}>{title}</a> : title}</H>
+	{count !== undefined && <span class="count">{count.toLocaleString('en-US')} scenes</span>}
+	{href && <a class="more" href={href}>{more} →</a>}
+</div>

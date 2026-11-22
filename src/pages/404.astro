@@ -1,0 +1,9 @@
+---
+import Base from '../layouts/Base.astro';
+import Grid from '../components/Grid.astro';
+import { playable } from '../lib/data';
+---
+<Base title="Page not found | DudeVR" description="This page does not exist." path="/404/" noindex>
+	<div class="empty"><img src="/mascot-sticker.png" alt="" width="160" /><h1>Oops — this scene left the room.</h1><p>The page moved or never existed. Try the search above, or grab one of these.</p><p><a class="btn btn-lemon" href="/vr-porn/">Newest VR porn →</a></p></div>
+	<Grid items={playable.slice(0, 8)} />
+</Base>

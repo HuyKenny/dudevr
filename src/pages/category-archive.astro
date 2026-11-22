@@ -1,0 +1,18 @@
+---
+import Base from '../layouts/Base.astro';
+import Crumbs from '../components/Crumbs.astro';
+import { categories, byCat, termImage, jsonCrumbs } from '../lib/data';
+const withScenes = categories.filter((c) => c.count > 0);
+const top = withScenes.slice(0, 24);
+const az = [...withScenes].sort((a, b) => a.name.localeCompare(b.name));
+---
+<Base title="VR Porn Categories: Every Niche in 8K | DudeVR" description={`All ${withScenes.length} VR porn categories on DudeVR, from blowjob and passthrough to cosplay, MILF and anime — each with free 180° trailers.`} path="/category-archive/" nav="cats" jsonld={[jsonCrumbs([{ name: 'Categories', path: '/category-archive/' }])]}>
+	<Crumbs items={[{ name: 'Categories' }]} />
+	<div class="ahead"><div><h1>VR porn categories</h1><p>{withScenes.length} categories · the biggest first, A–Z below</p></div></div>
+	<div class="cats">
+		{top.map((c) => <a class="cat" href={`/category/${c.slug}/`}><img src={termImage(byCat.get(c.slug))} alt="" loading="lazy" /><span>{c.name}<small>{c.count.toLocaleString('en-US')} scenes</small></span></a>)}
+	</div>
+	<section class="sec"><div class="sec-head"><h2>All categories A–Z</h2></div>
+		<div class="cat-list">{az.map((c) => <a href={`/category/${c.slug}/`}>{c.name}<small>{c.count}</small></a>)}</div>
+	</section>
+</Base>

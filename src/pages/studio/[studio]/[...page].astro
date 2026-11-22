@@ -1,0 +1,68 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Grid from '../../../components/Grid.astro';
+import Pager from '../../../components/Pager.astro';
+import Crumbs from '../../../components/Crumbs.astro';
+import { studios, byStudio, partner, pages, pageParam, jsonCrumbs, jsonItemList, fmtLen, STUDIO_SCORE, STUDIO_COLOR, STUDIO_TAGLINE, SITE, PER_PAGE } from '../../../lib/data';
+const PARTNER_PAGES = 120; // VRSmash cards without own page: noindex pages, outbound only
+export function getStaticPaths() {
+	return studios.flatMap((st) => {
+		const own = pages(byStudio.get(st.slug) ?? []);
+		const out = own.map((p) => ({ params: { studio: st.slug, page: pageParam(p.page) }, props: { ...p, st, extra: [] as any[], totalAll: p.total } }));
+		if (st.slug === 'vrsmash') {
+			const ext = partner.slice(0, 120 * 36);
+			const extraPages = Math.ceil(ext.length / 36);
+			const totalAll = own.length + extraPages;
+			out.forEach((o) => (o.props.totalAll = totalAll));
+			for (let i = 0; i < extraPages; i++) out.push({ params: { studio: st.slug, page: pageParam(own.length + i + 1) }, props: { page: own.length + i + 1, total: own.length, items: [], st, extra: ext.slice(i * 36, i * 36 + 36), totalAll } });
+		}
+		return out;
+	});
+}
+const { page, items, st, extra, totalAll } = Astro.props;
+const base = `/studio/${st.slug}/`;
+const path = page === 1 ? base : `${base}page/${page}/`;
+const suffix = page > 1 ? ` – Page ${page}` : '';
+const n = (byStudio.get(st.slug) ?? []).length;
+const META: Record<string, string> = {
+	'vr-bangers': "VR Bangers review: stream %d exclusive 8K VR porn scenes from the industry's top studio. Watch free trailers on DudeVR, then dive into full immersive 180° VR.",
+	'ar-porn': 'AR Porn review: %d AI passthrough & mixed-reality VR porn scenes optimised for Meta Quest 3. Preview free trailers on DudeVR and watch in full immersive AR.',
+	'vr-conk': 'VR Conk review: %d cosplay & parody VR porn scenes in 8K. Superheroes, gaming & movie parodies — free trailers on DudeVR, full scenes in immersive VR.',
+	blowvr: 'BlowVR review: %d immersive POV blowjob VR porn scenes in 180° 3D. Preview free trailers on DudeVR and stream the full close-up experience in VR.',
+	'vrb-trans': 'VRB Trans review: %d premium trans VR porn scenes in 8K from the VR Bangers network. Free trailers on DudeVR, full immersive virtual reality video.',
+	'vrb-gay': 'VRB Gay review: %d gay VR porn scenes in 8K from the VR Bangers network. Watch free trailers on DudeVR, then stream the full immersive VR experience.',
+	vrsmash: 'VRSmash review: %d recent 8K VR porn scenes from independent studios. Browse previews on DudeVR and stream the full videos on VRSmash.',
+};
+const score = STUDIO_SCORE[st.slug] || '9.0';
+const isExtra = extra.length > 0;
+const jsonld = [jsonCrumbs([{ name: 'Studios', path: '/studios/' }, { name: st.name, path: base }]), jsonItemList(items),
+	{ '@context': 'https://schema.org', '@type': 'Review', itemReviewed: { '@type': 'Product', name: st.name, url: `https://${st.domain}/` },
+		reviewRating: { '@type': 'Rating', ratingValue: score, bestRating: '10', worstRating: '1' }, author: { '@type': 'Organization', name: 'DudeVR', url: SITE + '/' } }];
+---
+<Base title={`${st.name} Review: ${n.toLocaleString('en-US')} VR Porn Scenes in 8K${suffix} | DudeVR`} description={(META[st.slug] || '%d VR scenes').replace('%d', n.toLocaleString('en-US'))}
+	path={path} nav="studios" noindex={isExtra} jsonld={isExtra ? [] : jsonld}>
+	<Crumbs items={[{ name: 'Studios', href: '/studios/' }, { name: st.name }]} />
+	<div class="ahead">
+		<span class="av" style={`border-radius:16px;background:${STUDIO_COLOR[st.slug]};display:grid;place-items:center;font:800 30px var(--display);color:var(--ink)`}>{st.name.slice(0, 2)}</span>
+		<div><h1>{st.name}{suffix}</h1><p>{STUDIO_TAGLINE[st.slug]} · {n.toLocaleString('en-US')} scenes · our score <b style="color:var(--lemon)">{score}/10</b></p></div>
+		<div class="actions"><a class="btn btn-lemon btn-big" href={st.aff} rel="sponsored nofollow noopener" target="_blank" data-aff="studio_banner" data-studio={st.slug}>Visit {st.name} →</a></div>
+	</div>
+	{isExtra ? (
+		<>
+			<p style="color:var(--muted)">More VRSmash releases — these open directly on VRSmash.</p>
+			<div class="grid">
+				{extra.map((x: any) => (
+					<article class="card">
+						<a class="th" href={x.aff} rel="sponsored nofollow noopener" target="_blank" data-aff="partner_card" data-studio="vrsmash">
+							<img src={x.p} alt={x.t} loading="lazy" width="480" height="270" />
+							<span class="b b-res">{x.res}</span>{x.len > 0 && <span class="b b-len">{fmtLen(x.len)}</span>}
+						</a>
+						<div class="meta"><h3><a href={x.aff} rel="sponsored nofollow noopener" target="_blank" data-aff="partner_card" data-studio="vrsmash">{x.t}</a></h3><div class="sub"><span class="models">{x.m.join(', ')}</span> <span class="ext">↗</span></div></div>
+					</article>
+				))}
+			</div>
+		</>
+	) : <Grid items={items} showStudio={false} eagerFirst={page === 1 ? 4 : 0} />}
+	<Pager base={base} page={page} total={totalAll} />
+	{page === 1 && st.desc && <section class="seo-box"><div class="prose" set:html={st.desc} /></section>}
+</Base>

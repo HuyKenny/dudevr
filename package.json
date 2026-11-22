@@ -1,0 +1,23 @@
+{
+  "name": "dudevr",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "engines": { "node": ">=22.12.0" },
+  "scripts": {
+    "sync": "node --experimental-strip-types scripts/sync.ts",
+    "sync:offline": "node --experimental-strip-types scripts/sync.ts --offline",
+    "prebuild": "node --experimental-strip-types scripts/build-redirects.ts",
+    "build": "astro build",
+    "postbuild": "node --experimental-strip-types scripts/check-dist.ts",
+    "dev": "astro dev",
+    "assets": "node scripts/assets.mjs"
+  },
+  "dependencies": {
+    "astro": "7.3.8"
+  },
+  "devDependencies": {
+    "sharp": "0.35.3",
+    "wrangler": "^4.151.3"
+  }
+}

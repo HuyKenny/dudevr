@@ -1,0 +1,9 @@
+---
+import Base from '../layouts/Base.astro';
+import { playable } from '../lib/data';
+const list = playable.slice(0, 400).map((s) => s.s);
+---
+<Base title="Random VR Porn Scene | DudeVR" description="Jump to a random VR porn scene on DudeVR." path="/shuffle/" noindex chips={false}>
+	<div class="empty"><img src="/mascot-sticker.png" alt="" width="160" /><h1>Shuffling…</h1><p>Picking a random VR scene for you.</p></div>
+	<script is:inline define:vars={{ list }}>location.replace('/' + list[Math.floor(Math.random() * list.length)] + '/');</script>
+</Base>

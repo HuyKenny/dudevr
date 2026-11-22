@@ -1,0 +1,26 @@
+---
+import Base from '../layouts/Base.astro';
+import Crumbs from './Crumbs.astro';
+import wpPages from '../../seed/wp/pages.json';
+import { VR_CAMS } from '../lib/data';
+const year = new Date().getFullYear();
+const own: Record<string, { title: string; html: string }> = {
+	'2257': { title: '18 U.S.C. 2257 Statement', html: `<p>DudeVR is not a producer (primary or secondary) of any of the visual content shown on this website. All videos, trailers and images are provided and hosted by third-party studios (VR Bangers, AR Porn, VR Conk, BlowVR, VRB Trans, VRB Gay, VRSmash and others) under their affiliate programmes.</p><p>Records required under 18 U.S.C. § 2257 and 28 C.F.R. 75 for this content are kept by the respective producers. Please follow the link to the producer's website on any scene page to find their custodian of records.</p><p>All persons depicted were 18 years of age or older at the time of production.</p>` },
+	terms: { title: 'Terms of Use', html: `<p>DudeVR is an adult website. By using it you confirm that you are at least 18 years old (or the age of majority where you live) and that viewing adult material is legal for you.</p><h2>What DudeVR is</h2><p>DudeVR is a directory of official VR trailers. We do not host full videos and we do not sell memberships. Links marked as partner links lead to the studios' own websites, where their terms apply. We may earn a commission when you buy there — see the <a href="/affiliate-disclosure/">affiliate disclosure</a>.</p><h2>Content and removal</h2><p>Trailers and images belong to their studios. If you believe something infringes your rights, use our <a href="/dmca/">DMCA</a> page and we will remove it promptly.</p><h2>No warranty</h2><p>We check that links work and trailers play, but studios change their sites. The site is provided as is, without warranties of any kind.</p><p>Last updated ${year}.</p>` },
+};
+interface Props { slug: string }
+const { slug } = Astro.props;
+const wp = (wpPages as any[]).find((p) => p.slug === slug);
+const page = own[slug] ?? { title: wp?.title ?? slug, html: String(wp?.content || '') };
+// Cookie policy was a stub on WordPress — point it to the full privacy text.
+const html = slug === 'cookie-policy' && page.html.replace(/<[^>]+>/g, '').trim().length < 200
+	? `<p>We use one analytics cookie set (Google Analytics 4) only after you agree in the cookie notice; visitors outside the EU/UK can decline it at any time via “Cookie settings” in the footer. Your 18+ confirmation and cookie choice are stored in your browser's local storage, not on our servers. Full details are in our <a href="/privacy-cookies/">privacy &amp; cookie policy</a>.</p>`
+	: page.html.replace(/\[[^\]]+\]/g, '');
+---
+<Base title={`${page.title} | DudeVR`} description={`${page.title} — DudeVR, the VR porn trailer directory.`} path={`/${slug}/`} chips={false}>
+	<Crumbs items={[{ name: page.title }]} />
+	<article style="margin-top:18px">
+		<h1 style="font:800 clamp(26px,3.4vw,38px)/1.1 var(--display);margin:0 0 18px">{page.title}</h1>
+		<div class="prose" set:html={html} />
+	</article>
+</Base>

@@ -1,0 +1,26 @@
+---
+import { type Scene, fmtLen, studioName, modelName, thumb } from '../lib/data';
+interface Props { s: Scene; eager?: boolean; showStudio?: boolean }
+const { s, eager = false, showStudio = true } = Astro.props;
+const NEW_CUTOFF = new Date(Date.now() - 14 * 864e5).toISOString().slice(0, 10);
+const frames = s.th.length >= 3 ? s.th.slice(0, 5).join('|') : '';
+const pt = s.c.includes('passthrough') || s.c.includes('ai-passthrough') || s.st === 'ar-porn';
+---
+<article class="card">
+	<a class="th" href={`/${s.s}/`} data-frames={frames || undefined} aria-label={s.t}>
+		<img src={thumb(s)} alt={s.t} width="480" height="270" loading={eager ? 'eager' : 'lazy'} decoding="async" fetchpriority={eager ? 'high' : undefined} onerror="this.onerror=null;this.src='/mascot-sticker.png';this.style.objectFit='contain';this.style.padding='18%'" />
+		<span class={`b b-res${s.res === '8K' || s.res === '12K' ? ' r8k' : ''}`}>{s.res}</span>
+		{s.d >= NEW_CUTOFF && <span class="b b-new">NEW</span>}
+		{pt && <span class="b b-pt">Passthrough</span>}
+		{s.len > 0 && <span class="b b-len">{fmtLen(s.len)}</span>}
+		<span class="bar"></span>
+	</a>
+	<div class="meta">
+		<h3><a href={`/${s.s}/`}>{s.t}</a></h3>
+		<div class="sub">
+			{showStudio && <a class="studio" href={`/studio/${s.st}/`}>{studioName(s.st)}</a>}
+			{showStudio && s.m.length > 0 && <span class="dot">·</span>}
+			{s.m.length > 0 && <span class="models">{s.m.slice(0, 3).map((m, i) => <>{i > 0 && ', '}<a href={`/model/${m}/`}>{modelName(m)}</a></>)}</span>}
+		</div>
+	</div>
+</article>

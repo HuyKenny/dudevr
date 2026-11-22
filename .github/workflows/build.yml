@@ -1,0 +1,106 @@
+name: build
+# dudevr.com: fetch the studio feeds -> rebuild the static Astro site -> deploy Workers static assets (no Worker script = $0).
+# PUBLIC repo: logs are public; scripts print only counts. No secrets are needed to fetch the feeds.
+on:
+  schedule:
+    - cron: "30 0 * * *"        # nightly 01:30 CET: full run (feeds, thumbnails, deploy, IndexNow)
+  push:
+    branches: [main]
+    paths-ignore: ["**.md", "seed/registry.json", "design/**"]
+  workflow_dispatch:
+    inputs:
+      quick:
+        description: "Quick fix: rebuild from the last saved feeds, no fetch, no new thumbnails (CSS/JS/template/text fixes, ~3 min)"
+        type: boolean
+        default: true
+concurrency:
+  group: build
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: production
+    permissions:
+      contents: write   # nightly run commits the slug registry back (URLs must never disappear)
+    env:
+      # push = quick by default (template fixes); schedule = full; manual = as chosen
+      QUICK: ${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.quick)) && '1' || '0' }}
+      HAS_CF: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Cost guard - the repo must stay public (private repos burn the shared 2 000 free minutes)
+        run: '[ "$(gh api repos/${{ github.repository }} --jq .private)" = "false" ] || { echo "repo is private - stopping"; exit 1; }'
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Secret scan (gitleaks, pinned + checksum)
+        run: |
+          curl -sSL -o /tmp/gl.tgz https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  /tmp/gl.tgz" | sha256sum -c -
+          tar xzf /tmp/gl.tgz -C /tmp gitleaks
+          /tmp/gitleaks detect --source . --redact --no-banner --exit-code 1
+      - uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda  # v4.1.0
+        with:
+          version: 12
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4.4.0
+        with:
+          node-version: 22.23.1
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Restore feeds + thumbnails from the last run
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684  # v4.2.3
+        with:
+          path: |
+            data/raw
+            public/t
+          key: dvr-data-${{ github.run_id }}
+          restore-keys: dvr-data-
+      - name: Sync catalogue (fetch feeds unless quick)
+        run: |
+          if [ "$QUICK" = 1 ] && [ -f data/raw/vr-bangers.json ]; then pnpm sync:offline; else pnpm sync; fi
+      - name: Thumbnails (incremental WebP)
+        run: node scripts/thumbs.mjs --max ${{ env.QUICK == '1' && '0' || '2500' }}
+      - name: Build (+ URL parity and file-count guard in postbuild)
+        run: pnpm build
+      - name: Save feeds + thumbnails
+        if: env.QUICK != '1'
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684  # v4.2.3
+        with:
+          path: |
+            data/raw
+            public/t
+          key: dvr-data-${{ github.run_id }}
+      - name: Deploy (static assets only)
+        if: env.HAS_CF == 'true'
+        run: |
+          npx wrangler deploy 2>&1 | tee /tmp/deploy.log
+          grep -q "Uploaded\|No updated asset files\|Deployed" /tmp/deploy.log || { echo "deploy did not confirm upload"; exit 1; }
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Smoke test
+        if: env.HAS_CF == 'true' && vars.LIVE_URL != ''
+        run: |
+          for p in / /vr-porn/ /category/free-vr-porn/ /studio/vr-bangers/ /sitemap_index.xml; do
+            c=$(curl -s -o /dev/null -w "%{http_code}" "${{ vars.LIVE_URL }}$p"); echo "$c $p"; [ "$c" = 200 ] || exit 1; done
+          c=$(curl -s -o /dev/null -w "%{http_code}" "${{ vars.LIVE_URL }}/wishlist/"); [ "$c" = 301 ] || { echo "redirect broken ($c)"; exit 1; }
+      - name: Commit the slug registry (URLs only ever get added)
+        if: env.QUICK != '1'
+        run: |
+          git diff --quiet seed/registry.json && exit 0
+          git config user.name "dudevr-bot"; git config user.email "actions@users.noreply.github.com"
+          git add seed/registry.json && git commit -m "registry: new scenes [skip ci]"
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" HEAD:main
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: IndexNow (full runs on production only)
+        if: env.QUICK != '1' && env.HAS_CF == 'true' && vars.LIVE_URL == 'https://dudevr.com'
+        run: node scripts/indexnow.mjs
+      - name: Summary
+        if: always()
+        run: |
+          { echo '### Catalogue'; echo '```'; cat src/data/meta.json 2>/dev/null; echo; echo '```'; } >> "$GITHUB_STEP_SUMMARY"

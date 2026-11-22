@@ -1,0 +1,133 @@
+---
+import Base from '../layouts/Base.astro';
+import Grid from '../components/Grid.astro';
+import Crumbs from '../components/Crumbs.astro';
+import { scenes, type Scene, studioBySlug, fmtLen, isoLen, mins, studioName, modelName, catName, related, autoDesc, thumb, jsonCrumbs, SITE, STUDIO_SCORE, hash } from '../lib/data';
+import wpPosts from '../../seed/wp/posts.json';
+
+export function getStaticPaths() {
+	const guides = (wpPosts as any[]).filter((p) => !p.studio?.length).map((p) => ({ params: { slug: p.slug }, props: { guide: p } }));
+	return [...scenes.map((s) => ({ params: { slug: s.s }, props: { scene: s } })), ...guides];
+}
+const { scene, guide } = Astro.props as { scene?: Scene; guide?: any };
+
+let s = scene!;
+let rel: Scene[] = [], studio, desc = '', title = '', metaDesc = '', jsonld: object[] = [];
+if (scene) {
+	studio = studioBySlug.get(s.st)!;
+	rel = related(s, 16);
+	desc = s.desc && s.desc.replace(/<[^>]+>/g, '').trim().length > 80 ? s.desc : autoDesc(s);
+	title = `${s.t} VR Porn – ${studioName(s.st)} | DudeVR`;
+	const plainDesc = desc.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+	metaDesc = plainDesc.length > 155 ? plainDesc.slice(0, 152).replace(/\s+\S*$/, '') + '…' : plainDesc;
+	const crumbItems = [{ name: studioName(s.st), path: `/studio/${s.st}/` }, { name: s.t, path: `/${s.s}/` }];
+	jsonld = [
+		{
+			'@context': 'https://schema.org', '@type': 'VideoObject', name: s.t, description: metaDesc || s.t,
+			thumbnailUrl: [s.p, ...s.th.slice(0, 2)].filter(Boolean), uploadDate: `${s.d}T00:00:00+00:00`,
+			...(s.len ? { duration: isoLen(s.len) } : {}),
+			...(s.mp4 ? { contentUrl: s.mp4 } : {}), ...(s.emb ? { embedUrl: s.emb } : {}),
+			isFamilyFriendly: false, contentRating: 'adult',
+			...(s.m.length ? { actor: s.m.map((m) => ({ '@type': 'Person', name: modelName(m), url: `${SITE}/model/${m}/` })) } : {}),
+			productionCompany: { '@type': 'Organization', name: studioName(s.st) },
+			genre: s.c.slice(0, 6).map(catName),
+		},
+		jsonCrumbs(crumbItems),
+	];
+} else {
+	title = `${guide.title} | DudeVR`;
+	const p = String(guide.content).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+	metaDesc = p.slice(0, 152).replace(/\s+\S*$/, '') + '…';
+	jsonld = [{ '@context': 'https://schema.org', '@type': 'Article', headline: guide.title, datePublished: guide.date + 'Z', dateModified: (guide.modified || guide.date) + 'Z',
+		author: { '@type': 'Organization', name: 'DudeVR' }, publisher: { '@type': 'Organization', name: 'DudeVR', logo: { '@type': 'ImageObject', url: `${SITE}/icon-512.png` } } },
+		jsonCrumbs([{ name: guide.title, path: `/${guide.slug}/` }])];
+}
+const benefits = s && scene ? [
+	`Full ${mins(s.len) || ''}${s.len ? '-minute ' : ''}scene in up to ${s.res}`,
+	s.st === 'vrsmash' ? 'Stream or download, no extra player needed' : 'Stream or download for Quest, Pico & PC VR',
+	studio && studio.count > 1 ? `Unlocks all ${studio.count.toLocaleString('en-US')}+ ${studioName(s.st)} scenes` : 'Instant access after sign-up',
+] : [];
+const ctaVerb = ['Watch the full scene', 'Get the full VR video', 'Unlock the full scene'][scene ? hash(s.s) % 3 : 0];
+---
+{scene ? (
+<Base title={title} description={metaDesc} path={`/${s.s}/`} jsonld={jsonld} image={s.p} chips={false} preload={s.p}>
+	<Crumbs items={[{ name: studioName(s.st), href: `/studio/${s.st}/` }, { name: s.t }]} />
+	<div class="scene">
+		<div>
+			<div class="player" data-scene={s.s} data-mp4={s.mp4} data-emb={s.emb}>
+				<img src={s.p || thumb(s)} alt={`${s.t} – VR porn trailer`} width="960" height="540" fetchpriority="high" />
+				<div class="start">
+					<div class="modes">
+						{s.mp4 && <button class="btn btn-lemon btn-big" type="button" data-mode="vr"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>Play 180° trailer</button>}
+						{s.emb && <button class={`btn btn-big${s.mp4 ? '' : ' btn-lemon'}`} type="button" data-mode="flat">{s.mp4 ? 'Studio player' : 'Play trailer'}</button>}
+						{!s.mp4 && !s.emb && <a class="btn btn-lemon btn-big" href={s.aff} rel="sponsored nofollow noopener" target="_blank" data-aff="player" data-studio={s.st} data-scene={s.s}>Watch trailer on {studioName(s.st)} ↗</a>}
+					</div>
+				</div>
+				{s.mp4 && <span class="note">Interactive 180° · drag, tilt or Enter VR</span>}
+			</div>
+			<h1>{s.t}</h1>
+			<div class="scene-meta">
+				<a href={`/studio/${s.st}/`}>{studioName(s.st)}</a>
+				{s.len > 0 && <span>{fmtLen(s.len)}</span>}
+				<span>{s.res} · {s.fov}°</span>
+				<span>{new Date(s.d + 'T00:00:00Z').toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+			</div>
+			<div class="pill-row">
+				{s.m.map((m) => <a class="pill model-pill" href={`/model/${m}/`}>{modelName(m)}</a>)}
+				{s.c.slice(0, 14).map((c) => <a class="pill" href={`/category/${c}/`}>{catName(c)}</a>)}
+			</div>
+			<div class="facts">
+				<div><small>Length</small><b>{s.len ? `${mins(s.len)} min` : '—'}</b></div>
+				<div><small>Resolution</small><b>{s.res}</b></div>
+				<div><small>Field of view</small><b>{s.fov}°</b></div>
+				<div><small>Studio score</small><b>{STUDIO_SCORE[s.st] || '9.0'}/10</b></div>
+			</div>
+			<div class="prose" set:html={desc} />
+			{s.th.length > 1 && (
+				<div class="gallery">
+					{s.th.slice(0, 5).map((t, i) => <a href={s.aff} rel="sponsored nofollow noopener" target="_blank" data-aff="gallery" data-studio={s.st} data-scene={s.s}><img src={t} alt={`${s.t} – still ${i + 1}`} loading="lazy" decoding="async" /></a>)}
+				</div>
+			)}
+		</div>
+		<aside class="side">
+			<div class="cta-box">
+				<span class="stamp">{s.res}<br />VR</span>
+				<h2>{ctaVerb}</h2>
+				<div style="font-weight:600;font-size:14px">on {studioName(s.st)}</div>
+				<ul>{benefits.map((b) => <li>{b}</li>)}</ul>
+				<a class="btn btn-big" href={s.aff} rel="sponsored nofollow noopener" target="_blank" data-aff="sidebar" data-studio={s.st} data-scene={s.s}>Watch in VR →</a>
+				<div class="fine">Opens {studio?.domain}. You pay the studio, not us.</div>
+			</div>
+			<div class="upnext">
+				<h2>Up next</h2>
+				{rel.slice(0, 10).map((r) => (
+					<a class="mini" href={`/${r.s}/`}>
+						<span class="th"><img src={thumb(r)} alt="" loading="lazy" width="150" height="84" /><span class="b b-len">{fmtLen(r.len)}</span></span>
+						<span><b>{r.t}</b><small>{studioName(r.st)}{r.m[0] ? ` · ${modelName(r.m[0])}` : ''}</small></span>
+					</a>
+				))}
+			</div>
+		</aside>
+	</div>
+	{s.m[0] && (
+		<section class="sec">
+			<div class="sec-head"><h2>More with <a href={`/model/${s.m[0]}/`}>{modelName(s.m[0])}</a> &amp; similar scenes</h2></div>
+			<Grid items={rel.slice(0, 12)} />
+		</section>
+	)}
+	{!s.m[0] && rel.length > 0 && (
+		<section class="sec"><div class="sec-head"><h2>Similar VR scenes</h2></div><Grid items={rel.slice(0, 12)} /></section>
+	)}
+	<div class="sticky-cta"><a class="btn btn-lemon" href={s.aff} rel="sponsored nofollow noopener" target="_blank" data-aff="sticky" data-studio={s.st} data-scene={s.s}>Watch full scene on {studioName(s.st)} →</a></div>
+	<script is:inline src="/vr/player.js" defer></script>
+</Base>
+) : (
+<Base title={title} description={metaDesc} path={`/${guide.slug}/`} jsonld={jsonld} chips={false}>
+	<Crumbs items={[{ name: guide.title }]} />
+	<article style="margin-top:18px">
+		<h1 style="font:800 clamp(26px,3.6vw,40px)/1.1 var(--display);margin:0 0 6px;letter-spacing:-.02em;max-width:900px">{guide.title}</h1>
+		<p style="color:var(--dim);margin:0 0 20px">Updated {new Date((guide.modified || guide.date) + 'Z').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+		<div class="prose" set:html={guide.content} />
+	</article>
+</Base>
+)}

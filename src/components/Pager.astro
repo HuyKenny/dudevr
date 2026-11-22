@@ -1,0 +1,19 @@
+---
+import { pageUrl } from '../lib/data';
+interface Props { base: string; page: number; total: number }
+const { base, page, total } = Astro.props;
+const nums = new Set([1, total, page - 2, page - 1, page, page + 1, page + 2].filter((n) => n >= 1 && n <= total));
+const list = [...nums].sort((a, b) => a - b);
+---
+{total > 1 && (
+	<nav class="pager" aria-label="Pagination">
+		{page > 1 && <a href={pageUrl(base, page - 1)} rel="prev">← Prev</a>}
+		{list.map((n, i) => (
+			<>
+				{i > 0 && n - list[i - 1] > 1 && <span class="gap">…</span>}
+				{n === page ? <span aria-current="page">{n}</span> : <a href={pageUrl(base, n)}>{n}</a>}
+			</>
+		))}
+		{page < total && <a href={pageUrl(base, page + 1)} rel="next">Next →</a>}
+	</nav>
+)}

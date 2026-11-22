@@ -1,0 +1,187 @@
+---
+import '../styles/site.css';
+import { SITE, VR_CAMS, GA4_ID, MONEY, catBySlug, TOP_CATS, studios } from '../lib/data';
+
+interface Props {
+	title: string;
+	description: string;
+	path: string; // canonical path with trailing slash
+	noindex?: boolean;
+	image?: string;
+	jsonld?: object[];
+	nav?: string; // active nav key
+	chips?: boolean;
+	activeChip?: string;
+	preload?: string; // LCP image
+}
+const { title, description, path, noindex = false, image = `${SITE}/og-default.jpg`, jsonld = [], nav = '', chips = true, activeChip = '', preload } = Astro.props;
+const canonical = SITE + path;
+const chipList = TOP_CATS.map((s) => catBySlug.get(s)).filter((c) => c && c.count > 0) as { slug: string; name: string }[];
+const year = new Date().getFullYear();
+const vrbStudios = studios.filter((s) => s.count > 0);
+---
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>{title}</title>
+	<meta name="description" content={description} />
+	<link rel="canonical" href={canonical} />
+	{noindex ? <meta name="robots" content="noindex, follow" /> : <meta name="robots" content="index, follow, max-image-preview:large, max-video-preview:-1" />}
+	<meta name="rating" content="adult" />
+	<meta name="RATING" content="RTA-5042-1996-1400-1577-RTA" />
+	<meta name="theme-color" content="#14110f" />
+	<meta property="og:type" content="website" />
+	<meta property="og:site_name" content="DudeVR" />
+	<meta property="og:title" content={title} />
+	<meta property="og:description" content={description} />
+	<meta property="og:url" content={canonical} />
+	<meta property="og:image" content={image} />
+	<meta name="twitter:card" content="summary_large_image" />
+	<link rel="icon" href="/favicon.ico" sizes="48x48" />
+	<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+	<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+	<link rel="manifest" href="/manifest.webmanifest" />
+	<link rel="preload" href="/fonts/unbounded-latin.woff2" as="font" type="font/woff2" crossorigin />
+	<link rel="preload" href="/fonts/rethinksans-latin.woff2" as="font" type="font/woff2" crossorigin />
+	{preload && <link rel="preload" as="image" href={preload} fetchpriority="high" />}
+	<link rel="preconnect" href="https://content.vrbangers.com" />
+	<link rel="dns-prefetch" href="https://trailers.vrbangers.com" />
+	<link rel="alternate" type="application/rss+xml" title="DudeVR — newest VR scenes" href="/rss.xml" />
+	{jsonld.map((j) => <script type="application/ld+json" set:html={JSON.stringify(j).replace(/</g, '\\u003c')} />)}
+	<script is:inline>
+		// Before first paint: 18+ notice + consent decision (no CLS, content stays crawlable).
+		(function () {
+			var age = null, consent = null;
+			try { age = localStorage.getItem('dvr-age'); consent = localStorage.getItem('dvr-consent'); } catch (e) {}
+			var eu = true;
+			try { var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; eu = /^Europe\//.test(tz) || /^Atlantic\/(Canary|Madeira|Azores|Reykjavik)$/.test(tz) || tz === 'Asia/Nicosia'; } catch (e) {}
+			var r = document.documentElement;
+			if (age !== '1' || (eu && !consent)) r.classList.add('need-gate');
+			if (eu) r.classList.add('eu');
+			window.__dvr = { eu: eu, consent: consent };
+		})();
+	</script>
+	<script is:inline define:vars={{ GA4_ID }}>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		window.gtag = gtag;
+		gtag('consent', 'default', { ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied', analytics_storage: 'denied', wait_for_update: 500 });
+		gtag('js', new Date());
+		gtag('config', GA4_ID);
+		(function () {
+			var c = window.__dvr || { eu: true, consent: null };
+			var allowed = !c.eu || c.consent === 'granted';
+			if (allowed) gtag('consent', 'update', { analytics_storage: 'granted' });
+			var loaded = false;
+			window.__dvrLoadGa = function () { allowed = true; gtag('consent', 'update', { analytics_storage: 'granted' }); load(); };
+			function load() { if (loaded || !allowed) return; loaded = true; var s = document.createElement('script'); s.async = true; s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA4_ID; document.head.appendChild(s); }
+			if ('requestIdleCallback' in window) requestIdleCallback(load, { timeout: 3000 }); else setTimeout(load, 2000);
+			['pointerdown', 'keydown', 'scroll'].forEach(function (e) { addEventListener(e, load, { once: true, passive: true }); });
+		})();
+	</script>
+	<slot name="head" />
+</head>
+<body>
+	<a class="skip" href="#main">Skip to content</a>
+	<header class="top" id="top">
+		<div class="wrap top-row">
+			<a class="logo" href="/" aria-label="DudeVR home">
+				<img src="/logo-mark.png" alt="" width="44" height="44" />
+				<b>Dude<span>VR</span></b>
+			</a>
+			<form class="search" action="/search/" method="get" role="search" autocomplete="off">
+				<label class="sr" for="q">Search VR scenes, models, categories</label>
+				<input id="q" name="q" type="search" placeholder="Search 6,000+ VR scenes, models, studios…" />
+				<button type="submit" aria-label="Search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+				<div class="search-drop" id="search-drop" role="listbox"></div>
+			</form>
+			<div class="top-actions">
+				<button class="burger" type="button" id="search-toggle" aria-label="Open search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+				<a class="btn" href="/shuffle/" id="shuffle" title="Random VR scene" aria-label="Random VR scene"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg><span class="btn-label">Shuffle</span></a>
+				<a class="btn btn-coral" href={VR_CAMS} rel="sponsored nofollow noopener" target="_blank" data-aff="nav_vrcams"><span class="live-dot"></span><span>VR Cams</span></a>
+			</div>
+		</div>
+		<nav class="wrap nav" aria-label="Main">
+			<a href="/" aria-current={nav === 'home' ? 'page' : undefined}>Home</a>
+			<a href="/vr-porn/" aria-current={nav === 'all' ? 'page' : undefined}>Newest</a>
+			<a href="/category-archive/" aria-current={nav === 'cats' ? 'page' : undefined}>Categories</a>
+			<a href="/studios/" aria-current={nav === 'studios' ? 'page' : undefined}>Studios</a>
+			<a href="/models/" aria-current={nav === 'models' ? 'page' : undefined}>Models</a>
+			<a href="/category/free-vr-porn/" class="hot">Free VR Porn</a>
+			<a href="/vr-porn-headset-guide/">Headset Guide</a>
+			<span class="sep"></span>
+			{vrbStudios.slice(0, 7).map((s) => <a href={`/studio/${s.slug}/`}>{s.name}</a>)}
+			<span class="sep"></span>
+			<a href={VR_CAMS} rel="sponsored nofollow noopener" target="_blank" class="hot" data-aff="nav_vrcams_text">Live VR Cams ↗</a>
+		</nav>
+	</header>
+	<main id="main" class="wrap">
+		{chips && (
+			<div class="chips" aria-label="Popular categories">
+				{chipList.map((c) => <a class={`chip${c.slug === activeChip ? ' on' : ''}${MONEY.some((m) => m.href.includes(`/${c.slug}/`)) ? ' money' : ''}`} href={`/category/${c.slug}/`}>{c.name}</a>)}
+				<a class="chip" href="/category-archive/">All categories →</a>
+			</div>
+		)}
+		<slot />
+	</main>
+	<footer class="foot">
+		<div class="wrap">
+			<div class="foot-grid">
+				<div>
+					<img class="mascot" src="/mascot-sticker.png" alt="" width="64" height="47" loading="lazy" />
+					<p><b style="color:var(--paper)">DudeVR</b> collects official VR porn trailers from VR Bangers, AR Porn, VR Conk, BlowVR, VRB Trans, VRB Gay and VRSmash, so you can preview a scene before you put the headset on. Full scenes play on the studio's own site.</p>
+				</div>
+				<div>
+					<h4>Browse</h4>
+					<ul>
+						<li><a href="/vr-porn/">Newest VR porn</a></li>
+						{MONEY.map((m) => <li><a href={m.href}>{m.label}</a></li>)}
+						<li><a href="/category/8k-vr-porn/">8K VR Porn</a></li>
+						<li><a href="/category/passthrough/">Passthrough AR</a></li>
+						<li><a href="/category-archive/">All categories</a></li>
+						<li><a href="/models/">VR porn stars</a></li>
+					</ul>
+				</div>
+				<div>
+					<h4>Studios</h4>
+					<ul>{vrbStudios.map((s) => <li><a href={`/studio/${s.slug}/`}>{s.name}</a></li>)}</ul>
+				</div>
+				<div>
+					<h4>DudeVR</h4>
+					<ul>
+						<li><a href="/vr-porn-headset-guide/">VR headset guide</a></li>
+						<li><a href={VR_CAMS} rel="sponsored nofollow noopener" target="_blank" data-aff="footer_vrcams">Live VR cams</a></li>
+						<li><a href="/affiliate-disclosure/">Affiliate disclosure</a></li>
+						<li><a href="/dmca/">DMCA</a></li>
+						<li><a href="/2257/">18 U.S.C. 2257</a></li>
+						<li><a href="/terms/">Terms</a></li>
+						<li><a href="/privacy-cookies/">Privacy &amp; cookies</a></li>
+						<li><button type="button" id="cookie-settings" style="background:none;border:0;padding:0;color:inherit">Cookie settings</button></li>
+					</ul>
+				</div>
+			</div>
+			<div class="legal">
+				<span class="rta">RTA</span>
+				<span>Adults only (18+). All performers were 18 or older at the time of filming; records are kept by the producing studios.</span>
+				<span style="margin-left:auto">© {year} DudeVR</span>
+			</div>
+		</div>
+	</footer>
+	<div class="gate" role="dialog" aria-live="polite" aria-label="Age and cookie notice">
+		<img src="/mascot-sticker.png" alt="" width="56" height="41" />
+		<p><b>18+ only.</b> DudeVR shows adult VR trailers. By continuing you confirm you are 18 or older.<span class="eu-only"> We'd also like to use analytics cookies — <a href="/privacy-cookies/">details</a>.</span></p>
+		<div class="gb">
+			<button class="btn btn-lemon" type="button" id="gate-ok">I'm 18+<span class="eu-only">&nbsp;· Accept</span></button>
+			<button class="btn btn-ghost eu-only" type="button" id="gate-no">18+ · No cookies</button>
+		</div>
+	</div>
+	<style is:global>
+		html:not(.eu) .eu-only { display: none; }
+	</style>
+	<script>
+		import '../scripts/site.ts';
+	</script>
+</body>
+</html>

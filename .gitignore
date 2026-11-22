@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.astro/
+data/raw/
+src/data/*.json
+!src/data/thumbs.json
+.env
+.env.*
+.wrangler/
+public/t/
+public/_redirects
+public/_headers

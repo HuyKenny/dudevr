@@ -1,0 +1,24 @@
+---
+import Base from '../layouts/Base.astro';
+import Crumbs from '../components/Crumbs.astro';
+import Grid from '../components/Grid.astro';
+import { studios, byStudio, STUDIO_SCORE, STUDIO_COLOR, STUDIO_TAGLINE, jsonCrumbs } from '../lib/data';
+const list = studios.filter((s) => s.count > 0).sort((a, b) => Number(STUDIO_SCORE[b.slug]) - Number(STUDIO_SCORE[a.slug]));
+---
+<Base title="VR Porn Studios Compared: Scores & Trailers | DudeVR" description="VR Bangers vs AR Porn vs VR Conk vs BlowVR vs VRSmash: what each VR porn studio is best at, how many scenes it has and our score — with free trailers." path="/studios/" nav="studios" jsonld={[jsonCrumbs([{ name: 'Studios', path: '/studios/' }])]}>
+	<Crumbs items={[{ name: 'Studios' }]} />
+	<div class="ahead"><div><h1>VR porn studios, compared</h1><p>Scored on picture quality, release pace and how well scenes work in a headset.</p></div></div>
+	<div class="studios">
+		{list.map((s) => (
+			<a class="studio-card" href={`/studio/${s.slug}/`}>
+				<span class="sw" style={`background:${STUDIO_COLOR[s.slug]}`}></span>
+				<b>{s.name}</b><span>{STUDIO_TAGLINE[s.slug]}</span><span>{s.count.toLocaleString('en-US')} scenes</span>
+				<span class="score">{STUDIO_SCORE[s.slug]}</span>
+			</a>
+		))}
+	</div>
+	{list.map((s) => (
+		<section class="sec"><div class="sec-head"><h2><a href={`/studio/${s.slug}/`}>{s.name}</a></h2><span class="count">{s.count.toLocaleString('en-US')} scenes</span><a class="more" href={`/studio/${s.slug}/`}>All →</a></div>
+			<Grid items={(byStudio.get(s.slug) ?? []).slice(0, 4)} showStudio={false} /></section>
+	))}
+</Base>

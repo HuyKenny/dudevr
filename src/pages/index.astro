@@ -1,0 +1,121 @@
+---
+import Base from '../layouts/Base.astro';
+import Grid from '../components/Grid.astro';
+import SecHead from '../components/SecHead.astro';
+import { scenes, playable, studios, byStudio, byCat, models, categories, catBySlug, MONEY, fmtLen, modelName, studioName, thumb, hash, termImage,
+	STUDIO_SCORE, STUDIO_COLOR, STUDIO_TAGLINE, SITE, VR_CAMS } from '../lib/data';
+
+// Scene of the day: deterministic per build date among recent playable VR Bangers-network scenes.
+const today = new Date().toISOString().slice(0, 10);
+const pool = playable.filter((s) => s.st !== 'vrb-gay' && s.st !== 'vrb-trans').slice(0, 60);
+const hero = pool[hash(today) % pool.length];
+// Newest, but interleaved by studio so one prolific feed (VRSmash) can't take the whole row.
+const buckets = new Map<string, typeof scenes>();
+for (const x of scenes.slice(0, 600)) { const b = buckets.get(x.st) ?? []; if (b.length < 8) { b.push(x); buckets.set(x.st, b); } }
+const newest: typeof scenes = [];
+for (let i = 0; newest.length < 24 && i < 8; i++) for (const b of buckets.values()) if (b[i] && newest.length < 24) newest.push(b[i]);
+const vrb = studios.filter((s) => s.count > 0);
+const rows = ['vr-bangers', 'ar-porn', 'vr-conk', 'vrsmash'].map((slug) => ({ st: studios.find((s) => s.slug === slug)!, items: (byStudio.get(slug) ?? []).slice(0, 8) }));
+const topCats = ['blowjob', 'passthrough', 'cosplay', 'milf', 'asian', 'anal', 'big-tits', 'parody', 'latina', 'threesome', 'teen', 'lesbian']
+	.map((s) => catBySlug.get(s)).filter((c) => c && c.count > 0);
+const topModels = models.slice(0, 18);
+const total = scenes.length;
+const moneyImgs = MONEY.map((m) => termImage(byCat.get(m.href.split('/')[2])));
+const jsonld = [
+	{ '@context': 'https://schema.org', '@type': 'WebSite', name: 'DudeVR', url: SITE + '/',
+		potentialAction: { '@type': 'SearchAction', target: `${SITE}/search/?q={search_term_string}`, 'query-input': 'required name=search_term_string' } },
+	{ '@context': 'https://schema.org', '@type': 'Organization', name: 'DudeVR', url: SITE + '/', logo: `${SITE}/icon-512.png` },
+];
+---
+<Base title="DudeVR – VR Porn Trailers in 8K from Top Studios" description={`Preview ${total.toLocaleString('en-US')} VR porn scenes before you buy: official 180° trailers from VR Bangers, AR Porn, VR Conk, BlowVR and VRSmash, sorted by star, studio and category.`} path="/" nav="home" jsonld={jsonld} preload={hero.p}>
+	<section class="hero">
+		<a class="hero-media" href={`/${hero.s}/`} aria-label={`Play trailer: ${hero.t}`}>
+			<img src={hero.p} alt={hero.t} width="960" height="540" fetchpriority="high" />
+			<span class="playbtn"><span><svg width="34" height="34" viewBox="0 0 24 24" fill="#14110f"><path d="M7 4.5v15l13-7.5z"/></svg></span></span>
+		</a>
+		<div class="hero-copy">
+			<span class="hand">scene of the day ↓</span>
+			<span class="tag-sticker" style="align-self:flex-start;background:var(--lemon)">Trailers first. Headset second.</span>
+			<h1>Try every <em>VR scene</em> before you strap in.</h1>
+			<p>Official 180° trailers from the studios that shoot in 8K. Drag to look around, tilt your phone, or hit “Enter VR” on a Quest.</p>
+			<div class="stats">
+				<div><b>{total.toLocaleString('en-US')}</b>VR scenes</div>
+				<div><b>{models.length.toLocaleString('en-US')}</b>performers</div>
+				<div><b>{vrb.length}</b>studios</div>
+			</div>
+			<div style="display:flex;gap:10px;flex-wrap:wrap">
+				<a class="btn btn-lemon btn-big" href={`/${hero.s}/`}>Play today's trailer</a>
+				<a class="btn btn-big" href="/vr-porn/">Browse newest</a>
+			</div>
+			<div class="feat">
+				<small>Today · {studioName(hero.st)} · {fmtLen(hero.len)}</small>
+				<a class="t" href={`/${hero.s}/`}>{hero.t}</a>
+				<span style="color:var(--muted);font-size:14px">{hero.m.slice(0, 3).map(modelName).join(', ')}</span>
+			</div>
+		</div>
+	</section>
+
+	<section class="sec">
+		<SecHead title="Newest VR porn" href="/vr-porn/" sticker="Fresh" />
+		<Grid items={newest} eagerFirst={4} />
+	</section>
+
+	<section class="sec">
+		<SecHead title="Trending right now" />
+		<div class="tiles">
+			{MONEY.map((m, i) => (
+				<a class="tile" href={m.href}><img src={moneyImgs[i]} alt="" loading="lazy" /><span class="tl"><b>{m.label}</b><span>Watch {m.label.toLowerCase()} trailers →</span></span></a>
+			))}
+			<a class="tile" href={VR_CAMS} rel="sponsored nofollow noopener" target="_blank" data-aff="home_tile_vrcams"><img src={termImage(byCat.get('passthrough'))} alt="" loading="lazy" /><span class="tl"><b>Live VR Cams</b><span style="color:var(--coral)">Models streaming in VR now ↗</span></span></a>
+		</div>
+	</section>
+
+	<section class="sec">
+		<SecHead title="Pick a studio" href="/studios/" more="Compare studios" />
+		<div class="studios">
+			{vrb.map((s) => (
+				<a class="studio-card" href={`/studio/${s.slug}/`}>
+					<span class="sw" style={`background:${STUDIO_COLOR[s.slug]}`}></span>
+					<b>{s.name}</b><span>{STUDIO_TAGLINE[s.slug]}</span><span>{s.count.toLocaleString('en-US')} scenes</span>
+					<span class="score">{STUDIO_SCORE[s.slug]}</span>
+				</a>
+			))}
+		</div>
+	</section>
+
+	{rows.map(({ st, items }) => (
+		<section class="sec">
+			<SecHead title={`New from ${st.name}`} href={`/studio/${st.slug}/`} more={`All ${st.count.toLocaleString('en-US')}`} />
+			<Grid items={items} showStudio={false} />
+		</section>
+	))}
+
+	<section class="sec">
+		<SecHead title="Popular categories" href="/category-archive/" more="All categories" />
+		<div class="cats">
+			{topCats.map((c) => (
+				<a class="cat" href={`/category/${c!.slug}/`}><img src={termImage(byCat.get(c!.slug))} alt="" loading="lazy" /><span>{c!.name}<small>{c!.count.toLocaleString('en-US')} scenes</small></span></a>
+			))}
+		</div>
+	</section>
+
+	<section class="sec">
+		<SecHead title="VR porn stars" href="/models/" more="All models" />
+		<div class="models-grid">
+			{topModels.map((m) => (
+				<a class="model" href={`/model/${m.slug}/`}><span class="av"><img src={m.img || '/mascot-sticker.png'} alt={m.name} loading="lazy" /></span><b>{m.name}</b><small>{m.count} scenes</small></a>
+			))}
+		</div>
+	</section>
+
+	<section class="seo-box">
+		<div class="prose">
+			<h2>VR porn trailers you can actually look around in</h2>
+			<p>Most sites show a VR scene as a flat, split-screen clip — two squashed eyes side by side. DudeVR plays the official 180° trailer the way it was shot: drag with the mouse, tilt your phone, or press <strong>Enter VR</strong> in the Quest browser and you are standing in the room. If you like what you see, the full scene is one click away on the studio's own site.</p>
+			<h2>Which studio fits you?</h2>
+			<p><a href="/studio/vr-bangers/">VR Bangers</a> is the flagship: 8K, big names and the largest back catalogue of the network. <a href="/studio/ar-porn/">AR Porn</a> films for passthrough, so the performer appears in your real room on a Quest 3. <a href="/studio/vr-conk/">VR Conk</a> builds cosplay and <a href="/category/parody/">parody</a> sets, <a href="/studio/blowvr/">BlowVR</a> stays close-up and POV, while <a href="/studio/vrb-trans/">VRB Trans</a> and <a href="/studio/vrb-gay/">VRB Gay</a> cover trans and gay VR. <a href="/studio/vrsmash/">VRSmash</a> adds thousands of recent 8K scenes from independent producers.</p>
+			<h2>Free VR porn, 8K and passthrough</h2>
+			<p>Studios release a handful of full scenes for free — they are collected under <a href="/category/free-vr-porn/">free VR porn</a>. Fans of animation head to <a href="/category/anime/">anime VR porn</a>. Want the sharpest picture? Filter by <a href="/category/8k-vr-porn/">8K VR porn</a>, or see how <a href="/category/passthrough/">passthrough</a> scenes mix the video with your surroundings. Not sure which headset to buy? Our <a href="/vr-porn-headset-guide/">VR headset guide</a> compares the Quest 3S, Quest 3 and PS VR2 for video.</p>
+		</div>
+	</section>
+</Base>

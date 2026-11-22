@@ -1,0 +1,14 @@
+{
+	// dudevr.com — pure static site on Workers static assets. No Worker script: every request is a static-asset
+	// request (free, unlimited); old URLs are handled by _redirects, misses get 404.html. Nothing here is billed.
+	"name": "dudevr",
+	"compatibility_date": "2026-11-01",
+	"workers_dev": true,
+	"preview_urls": false,
+	"assets": {
+		"directory": "./dist",
+		"html_handling": "auto-trailing-slash",
+		"not_found_handling": "404-page"
+	},
+	"observability": { "enabled": false }
+}

@@ -1,0 +1,40 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Grid from '../../../components/Grid.astro';
+import Pager from '../../../components/Pager.astro';
+import Crumbs from '../../../components/Crumbs.astro';
+import { categories, byCat, pages, pageParam, jsonCrumbs, jsonItemList, MONEY, catBySlug, termImage } from '../../../lib/data';
+export function getStaticPaths() {
+	// Deep category pages are capped (file budget); every scene stays reachable via /vr-porn/ pagination, studios, models and sitemaps.
+	return categories.flatMap((c) => pages(byCat.get(c.slug) ?? []).slice(0, 20).map((p) => ({ params: { cat: c.slug, page: pageParam(p.page) }, props: { ...p, total: Math.min(p.total, 20), c } })));
+}
+const { page, total, items, c } = Astro.props;
+const base = `/category/${c.slug}/`;
+const path = page === 1 ? base : `${base}page/${page}/`;
+const suffix = page > 1 ? ` – Page ${page}` : '';
+const label = /porn|\bvr\b/i.test(c.name) ? c.name : `${c.name} VR Porn`;
+const count = (byCat.get(c.slug) ?? []).length;
+const desc = `Watch ${count.toLocaleString('en-US')} ${label} scenes on DudeVR — free VR trailers from VR Bangers, AR Porn, VR Conk & more, then stream the full immersive video in up to 8K.`;
+// Related categories: co-occurring tags in this category, money pages always first.
+const co = new Map<string, number>();
+for (const s of byCat.get(c.slug) ?? []) for (const x of s.c) if (x !== c.slug) co.set(x, (co.get(x) || 0) + 1);
+const relCats = [...co.entries()].sort((a, b) => b[1] - a[1]).map(([s]) => catBySlug.get(s)).filter(Boolean).slice(0, 18);
+const money = MONEY.filter((m) => !m.href.includes(`/${c.slug}/`));
+---
+<Base title={`${label}: ${count.toLocaleString('en-US')} Scenes in 8K${suffix} | DudeVR`} description={desc} path={path} nav="cats" activeChip={c.slug}
+	jsonld={[jsonCrumbs([{ name: 'Categories', path: '/category-archive/' }, { name: c.name, path: base }]), jsonItemList(items)]}>
+	<Crumbs items={[{ name: 'Categories', href: '/category-archive/' }, { name: c.name }]} />
+	<div class="ahead">
+		<span class="av" style="border-radius:16px;transform:rotate(-4deg)"><img src={termImage(byCat.get(c.slug))} alt="" /></span>
+		<div><h1>{label}{suffix}</h1><p>{count.toLocaleString('en-US')} scenes · newest first</p></div>
+	</div>
+	{items.length ? <Grid items={items} eagerFirst={page === 1 ? 4 : 0} /> : (
+		<div class="empty"><img src="/mascot-sticker.png" alt="" width="160" /><h2>No scenes here right now</h2><p>Studios rotate this tag — try <a href="/vr-porn/" style="color:var(--lemon)">the newest VR porn</a>.</p></div>
+	)}
+	<Pager base={base} page={page} total={total} />
+	<div class="more-cats">
+		{money.map((m) => <a class="chip money" href={m.href}>{m.label}</a>)}
+		{relCats.map((r) => <a class="chip" href={`/category/${r!.slug}/`}>{r!.name}</a>)}
+	</div>
+	{page === 1 && c.desc && <section class="seo-box"><div class="prose" set:html={c.desc.replace(/\{C\}/g, String(count))} /></section>}
+</Base>

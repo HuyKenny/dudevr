@@ -1,0 +1,26 @@
+---
+import Base from '../layouts/Base.astro';
+import Crumbs from '../components/Crumbs.astro';
+import { SITE, jsonCrumbs } from '../lib/data';
+import { guides } from '../lib/guides';
+const list = [...guides].sort((a, b) => b.modified.localeCompare(a.modified));
+const lead = (g: (typeof guides)[number]) => g.desc ?? String(g.content).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().split(/(?<=[.!?])\s+/)[0];
+---
+<Base title="VR Porn Guides: Headsets, Quest Setup & Studios | DudeVR" description="Practical VR porn guides: which headset to buy, how to watch on a Meta Quest, passthrough explained and the best VR porn sites compared." path="/guides/" chips={false}
+	jsonld={[jsonCrumbs([{ name: 'Guides', path: '/guides/' }]), { '@context': 'https://schema.org', '@type': 'CollectionPage', name: 'VR Porn Guides', url: `${SITE}/guides/`,
+		hasPart: list.map((g) => ({ '@type': 'Article', headline: g.h1 ?? g.title, url: `${SITE}/${g.slug}/` })) }]}>
+	<Crumbs items={[{ name: 'Guides' }]} />
+	<article style="margin-top:18px">
+		<h1 style="font:800 clamp(26px,3.4vw,38px)/1.1 var(--display);margin:0 0 18px">VR Porn Guides</h1>
+		<div class="prose">
+			<p>Short, practical answers for watching VR porn at home: the hardware, the setup and where the good scenes are.</p>
+			{list.map((g) => (
+				<section>
+					<h2><a href={`/${g.slug}/`}>{g.h1 ?? g.title}</a></h2>
+					<p>{lead(g)}</p>
+				</section>
+			))}
+			<p>Looking for scenes instead? Start with <a href="/category/free-vr-porn/">free VR porn</a>, the <a href="/category/best-vr-porn/">best VR porn</a> or <a href="/category/anime/">VR hentai</a>.</p>
+		</div>
+	</article>
+</Base>

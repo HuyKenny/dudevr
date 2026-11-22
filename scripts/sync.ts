@@ -46,10 +46,14 @@ const FEEDS: { studio: string; url: string }[] = [
 ];
 const VRSMASH_SINCE = process.env.VRSMASH_SINCE || '2025-07-01';
 const VRSMASH_FEED = 'https://www.vrsmash.com/api/content/v1/feed/videos';
+// Performers with real "{name} vr" search demand (Ahrefs US, 11/2026) whose scenes are mostly on VRSmash:
+// their VRSmash scenes get pages and they get a model page even with a single scene.
+const HOT_MODELS = new Set(['ava-addams', 'kelsi-monroe', 'leah-gotti', 'richelle-ryan', 'violet-myers', 'lena-paul', 'cory-chase', 'nicole-aniston',
+	'dillion-harper', 'melztube', 'anna-bell-peaks', 'kendra-lust', 'mia-malkova', 'krissy-lynn']);
 
 // Slugs that must never be used by a scene (they are sections of the site).
 const RESERVED = new Set(['category', 'studio', 'model', 'models', 'studios', 'categories', 'vr-porn', 'page', 'search', 'category-archive',
-	'dmca', 'affiliate-disclosure', 'privacy-cookies', 'cookie-policy', '2257', 'terms', 'about', 'contact', 'vr-cams', 'wishlist', 'blog', 'feed', 'wp-admin', 'wp-content', 'shuffle', 'tag']);
+	'dmca', 'affiliate-disclosure', 'privacy-cookies', 'cookie-policy', '2257', 'terms', 'about', 'contact', 'vr-cams', 'wishlist', 'blog', 'feed', 'wp-admin', 'wp-content', 'shuffle', 'tag', 'guides', 'how-to-watch-vr-porn-on-quest', 'best-vr-porn-sites']);
 
 export const slugify = (s: string) =>
 	s.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/&/g, ' and ').replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -290,7 +294,16 @@ if (vsTxt) {
 		// Never shadow a VRB scene (VRSmash re-lists some of them; the VRB copy has a real trailer).
 		const dup = scenes.has(m[1]) && !keyToSlug.get(key);
 		// Curated: recent (since 07/2025), 8K+, a named performer, 25+ minutes → ~4k pages. Tune VRSMASH_SINCE to grow it slowly.
-		const indexable = !dup && !lowQuality && date.slice(0, 10) >= VRSMASH_SINCE && (res === '8K' || res === '12K') && modelList.length > 0 && toSec(len) >= 1500 && !!poster;
+		const curated = !lowQuality && date.slice(0, 10) >= VRSMASH_SINCE && (res === '8K' || res === '12K') && modelList.length > 0 && toSec(len) >= 1500;
+		// Niche intents where the VRB network is thin but search demand is high (Ahrefs US 11/2026: "vr hentai" 24k, "trans vr porn" 8k,
+		// "gay vr porn" 7k, "{name} vr"). Animated scenes are short and have no performer by nature, so they skip the curated rule.
+		const pmv = /\bPMV\b|compilation|music video/i.test(t) || tagList.includes('PMV');
+		const niche = !pmv && (
+			((tagList.includes('Hentai') || tagList.includes('CGI') || tagList.includes('Anime')) && date >= '2024' && toSec(len) >= 90) ||
+			(tagList.includes('Gay') && toSec(len) >= 600) ||
+			(tagList.some((x) => /^trans/i.test(x)) && date >= '2025' && modelList.length > 0 && toSec(len) >= 600) ||
+			(modelList.some((n) => HOT_MODELS.has(slugify(n))) && toSec(len) >= 600));
+		const indexable = !dup && !!poster && (curated || niche);
 		if (indexable) {
 			const slug = claimSlug(key, m[1], date.slice(0, 10));
 			for (const n of modelList) { const s = slugify(n); if (s && !modelNames.has(s)) modelNames.set(s, n); }
@@ -320,11 +333,24 @@ const all = [...scenes.values()].sort((a, b) => (b.d === a.d ? a.s.localeCompare
 // Money pages (Bing traffic drivers) get the whole matching intent, not just the literal tag:
 //  - free-vr-porn: the full free scenes (flag free=1, shown first) + every scene with a free 180° trailer
 //  - anime: anime + hentai + CGI-animated scenes
+//  - the other keyword pages (content gap 11/2026) collect their synonym tags; the source tags keep their own pages/URLs
+const UNIONS: [string, (s: Scene) => boolean][] = [
+	['anime', (s) => s.c.includes('hentai') || s.c.includes('cgi-vr-porn')],
+	['trans', (s) => s.st === 'vrb-trans' || ['shemale-fucks-girl', 'shemale-fucks-guy', 'trans-fucks-guy', 'trans-fucks-girl', 'ladyboy'].some((c) => s.c.includes(c))],
+	['gay', (s) => s.st === 'vrb-gay' || s.c.includes('twinks') || s.c.includes('bear')],
+	['passthrough', (s) => s.st === 'ar-porn' || s.c.includes('ai-passthrough')],
+	['bbw', (s) => s.c.includes('chubby')],
+	['for-women', (s) => s.c.includes('for-girls')],
+	['compilation', (s) => s.c.includes('compilations')],
+	['feet', (s) => s.c.includes('footjob')],
+	['best-vr-porn', (s) => s.c.some((c) => /^best-of-20\d\d$/.test(c) || c === '2025-top-100-videos' || c === 'best-ar-porn-of-2025' || c === 'award-winning')],
+];
 for (const s of all) {
 	if (s.c.includes('free-vr-porn') || s.c.includes('free-video')) (s as any).free = 1;
 	if ((s as any).free || s.mp4) { if (!s.c.includes('free-vr-porn')) s.c.push('free-vr-porn'); }
-	if ((s.c.includes('hentai') || s.c.includes('cgi-vr-porn')) && !s.c.includes('anime')) s.c.push('anime');
+	for (const [cat, test] of UNIONS) if (!s.c.includes(cat) && test(s)) s.c.push(cat);
 }
+catNames.set('best-vr-porn', 'Best VR Porn');
 const catCount = new Map<string, number>(), modelCount = new Map<string, number>();
 for (const s of all) { for (const c of s.c) catCount.set(c, (catCount.get(c) || 0) + 1); for (const m of s.m) modelCount.set(m, (modelCount.get(m) || 0) + 1); }
 const wpCatSet = new Set(wpCats.map((t) => t.slug)), wpModelSet = new Set(wpModels.map((t) => t.slug));
@@ -332,7 +358,7 @@ const catPages = [...catCount.keys(), ...wpCatSet].filter((c, i, a) => a.indexOf
 	.filter((c) => wpCatSet.has(c) || (catCount.get(c) || 0) >= 12);
 // Every VR Bangers-network performer gets a page (studio prose links to them); VRSmash-only names need 2+ scenes.
 const vrbModels = new Set(all.filter((s) => s.src !== 'vrsmash').flatMap((s) => s.m));
-const modelPages = [...new Set([...modelCount.keys(), ...wpModelSet])].filter((m) => wpModelSet.has(m) || vrbModels.has(m) || (modelCount.get(m) || 0) >= 2);
+const modelPages = [...new Set([...modelCount.keys(), ...wpModelSet])].filter((m) => wpModelSet.has(m) || vrbModels.has(m) || (modelCount.get(m) || 0) >= 2 || (HOT_MODELS.has(m) && (modelCount.get(m) || 0) >= 1));
 const catKeep = new Set(catPages), modelKeep = new Set(modelPages);
 for (const s of all) { s.c = s.c.filter((c) => catKeep.has(c)); s.m = s.m.filter((m) => modelKeep.has(m)); }
 
@@ -342,7 +368,7 @@ const sceneSet = new Set(all.map((x) => x.s));
 const feedSlugToScene = new Map<string, string>();
 for (const [slug, e] of Object.entries(registry)) { const m = /\/([^/]+)$/.exec(e.k); if (m && sceneSet.has(slug)) feedSlugToScene.set(m[1], slug); }
 const STATIC_PATHS = new Set(['/', '/vr-porn/', '/category-archive/', '/studios/', '/models/', '/about/', '/contact/', '/dmca/', '/affiliate-disclosure/',
-	'/privacy-cookies/', '/cookie-policy/', '/2257/', '/terms/', ...wpPosts.filter((p) => !p.studio?.length).map((p) => `/${p.slug}/`)]);
+	'/privacy-cookies/', '/cookie-policy/', '/2257/', '/terms/', '/vr-cams/', '/guides/', '/how-to-watch-vr-porn-on-quest/', '/best-vr-porn-sites/', ...wpPosts.filter((p) => !p.studio?.length).map((p) => `/${p.slug}/`)]);
 const ALIAS: Record<string, string> = { '/categories/': '/category-archive/', '/videos/': '/vr-porn/', '/video/': '/vr-porn/', '/pornstars/': '/models/', '/vr-porn-videos/': '/vr-porn/' };
 let linkFixed = 0, linkDropped = 0;
 function resolvePath(path: string): string | null {
@@ -366,8 +392,11 @@ const fixLinks = (html: string) => html.replace(/<a href="(\/[^"]*)">([\s\S]*?)<
 });
 for (const s of all) if (s.desc) s.desc = fixLinks(s.desc);
 
+// VRSmash has no studio token: reuse the affiliate link_data of its feed (aff_id in every scene URL) on the home page.
+const vsLink = /[?&]link_data=([^&]+)/.exec(all.find((x) => x.st === 'vrsmash')?.aff || '')?.[1];
+const vrsmashHome = vsLink ? `https://www.vrsmash.com/?link_data=${vsLink}` : 'https://www.vrsmash.com/';
 const terms = {
-	studios: STUDIOS.map((s) => ({ slug: s.slug, name: s.name, domain: s.domain, aff: s.token ? `https://${s.domain}/?link_data=${s.token}` : `https://www.vrsmash.com/`,
+	studios: STUDIOS.map((s) => ({ slug: s.slug, name: s.name, domain: s.domain, aff: s.token ? `https://${s.domain}/?link_data=${s.token}` : vrsmashHome,
 		count: all.filter((x) => x.st === s.slug).length, desc: fixLinks(cleanProse(wpStudios.find((w) => w.slug === s.slug)?.description || '')) })),
 	categories: catPages.map((slug) => { const w = wpCats.find((t) => t.slug === slug);
 		return { slug, name: decode(w?.name || catNames.get(slug) || slug), count: catCount.get(slug) || 0, desc: fixLinks(cleanProse(w?.description || '')) }; })

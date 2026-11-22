@@ -1,0 +1,57 @@
+---
+import Base from '../layouts/Base.astro';
+import Crumbs from '../components/Crumbs.astro';
+import Grid from '../components/Grid.astro';
+import { SITE, VR_CAMS, jsonCrumbs, byCat } from '../lib/data';
+// Landing for "vr cam girls" / "live vr porn" / "vr porn cam" / "vr sex cam" (≈14k US searches/mo, Ahrefs 11/2026).
+// The header button keeps linking straight to the partner; this page explains the format and ranks for the queries.
+const passthrough = (byCat.get('passthrough') ?? []).slice(0, 10);
+const faq: [string, string][] = [
+	['What are VR cam girls?', 'Live webcam models who broadcast with a stereo 180° camera instead of a flat webcam. In a headset you see the room in 3D at real scale, and you can chat and tip like on any cam site.'],
+	['Do I need a VR headset for VR cams?', 'No. The streams also play on a phone or computer, where you drag to look around. A headset such as the Quest 3 gives the full 3D effect.'],
+	['Are VR cams free to watch?', 'Public shows are free to watch; private shows and tips are paid with tokens on the cam site.'],
+];
+---
+<Base title="VR Cam Girls: Live VR Porn Cams in 180° 3D | DudeVR" description="VR cam girls stream live in 180° 3D: how live VR porn cams work, how to watch them on a Quest or phone, what costs money and where to find the models online now."
+	path="/vr-cams/" chips={false}
+	jsonld={[jsonCrumbs([{ name: 'VR Cams', path: '/vr-cams/' }]), { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) }]}>
+	<Crumbs items={[{ name: 'VR Cams' }]} />
+	<article style="margin-top:18px">
+		<h1 style="font:800 clamp(26px,3.4vw,38px)/1.1 var(--display);margin:0 0 10px">VR Cam Girls: Live VR Porn Cams</h1>
+		<p style="margin:0 0 20px"><a class="btn btn-coral" href={VR_CAMS} rel="sponsored noopener" target="_blank" data-aff="vrcams_hero">See who is live in VR now ↗</a></p>
+		<div class="prose">
+			<p>Recorded VR porn is filmed once and edited. <b>VR cams are live</b>: a model streams from her own room with a stereo 180° camera, and you watch in 3D, chat with her and decide what happens next. It is the closest thing to being in the room — and it works in the same headsets you already use for <a href="/vr-porn/">VR porn trailers</a>.</p>
+			<h2>How live VR porn cams work</h2>
+			<ul>
+				<li><b>The camera:</b> two lenses side by side, placed at about head height, so the room keeps its real scale and depth. That is the difference from a regular webcam held at arm's length.</li>
+				<li><b>Public room:</b> free to watch. The model chats with everyone and reacts to tips.</li>
+				<li><b>Private show:</b> one-on-one, paid per minute with tokens. In VR this is where eye contact and distance matter most.</li>
+				<li><b>Interactive toys:</b> many models connect a toy that vibrates when viewers tip.</li>
+			</ul>
+			<h2>How to watch VR cams on a Quest</h2>
+			<ol>
+				<li>Open the Meta Quest Browser — a private window keeps it out of the history.</li>
+				<li>Go to the <a href={VR_CAMS} rel="sponsored noopener" target="_blank" data-aff="vrcams_steps">VR cam girls</a> page and pick a model who is online.</li>
+				<li>Press the VR button in the player. The stream switches to 180° 3D around you; chat stays in a floating panel.</li>
+			</ol>
+			<p>On a phone the same stream plays as a 180° view you can drag or tilt. For the setup details see <a href="/how-to-watch-vr-porn-on-quest/">how to watch VR porn on a Quest</a>; for hardware, the <a href="/vr-porn-headset-guide/">best VR headset for porn</a>.</p>
+			<h2>VR cams vs recorded VR porn</h2>
+			<table>
+				<thead><tr><th></th><th>Live VR cams</th><th>Recorded VR scenes</th></tr></thead>
+				<tbody>
+					<tr><td>Picture</td><td>Streamed, usually 4K or lower</td><td>Up to 8K downloads</td></tr>
+					<tr><td>Interaction</td><td>Chat, requests, toys</td><td>None — a fixed script</td></tr>
+					<tr><td>Cost</td><td>Free public rooms, paid privates</td><td>Studio membership</td></tr>
+					<tr><td>Best for</td><td>Personal attention</td><td>Production, stars, sets</td></tr>
+				</tbody>
+			</table>
+			<p>Prefer regular, non-VR webcams? <a href="https://ecamx.com/">eCamX</a> lists live cam models by category.</p>
+			<h2>FAQ</h2>
+			{faq.map(([q, a]) => <><h3>{q}</h3><p>{a}</p></>)}
+		</div>
+	</article>
+	<section class="sec">
+		<div class="sec-head"><h2>Passthrough scenes: the closest recorded thing to a cam</h2></div>
+		<Grid items={passthrough} />
+	</section>
+</Base>

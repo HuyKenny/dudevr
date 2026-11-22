@@ -5,9 +5,11 @@ import Pager from '../../../components/Pager.astro';
 import Crumbs from '../../../components/Crumbs.astro';
 import { categories, byCat, pages, pageParam, jsonCrumbs, jsonItemList, MONEY, catBySlug, termImage, studioName, modelName, mins } from '../../../lib/data';
 import { fitTitle, fitDescription, catIndexable } from '../../../lib/seo';
+import { moneyCopy } from '../../../lib/money-copy';
 export function getStaticPaths() {
+	const CAT_MAX_PAGES = 15; // file budget (Workers static assets: 20k files)
 	// Deep category pages are capped (file budget); every scene stays reachable via /vr-porn/ pagination, studios, models and sitemaps.
-	return categories.flatMap((c) => pages(byCat.get(c.slug) ?? []).slice(0, 20).map((p) => ({ params: { cat: c.slug, page: pageParam(p.page) }, props: { ...p, total: Math.min(p.total, 20), c } })));
+	return categories.flatMap((c) => pages(byCat.get(c.slug) ?? []).slice(0, CAT_MAX_PAGES).map((p) => ({ params: { cat: c.slug, page: pageParam(p.page) }, props: { ...p, total: Math.min(p.total, CAT_MAX_PAGES), c } })));
 }
 const { page, total, items, c } = Astro.props;
 const base = `/category/${c.slug}/`;
@@ -18,31 +20,6 @@ const count = (byCat.get(c.slug) ?? []).length;
 const N = count.toLocaleString('en-US');
 const all = byCat.get(c.slug) ?? [];
 const freeFull = all.filter((x: any) => x.free).length;
-// Keyword-led copy for the pages Bing already ranks (free vr porn, anime, mature, 8k, ebony, pov).
-const MONEY_COPY: Record<string, { t: string; h1: string; lead: string; d: string }> = {
-	'free-vr-porn': { t: `Free VR Porn: ${N} Free Scenes & 180° Trailers`, h1: 'Free VR Porn',
-		lead: `${freeFull} full VR porn scenes you can watch for free, plus ${(count - freeFull).toLocaleString('en-US')} official 180° trailers that play right here — drag to look around, tilt your phone or open the page in your Quest browser and press Enter VR. No sign-up, no download.`,
-		d: `Free VR porn: ${freeFull} full free scenes + ${(count - freeFull).toLocaleString('en-US')} free 180° VR trailers in up to 8K. Watch in the browser, on your phone or in a Quest — no sign-up.` },
-	anime: { t: `Anime VR Porn & Hentai VR: ${N} Scenes`, h1: 'Anime VR Porn & Hentai VR',
-		lead: `${N} animated, hentai and CGI VR porn scenes — anime characters, game heroines and cartoon parodies rendered for 180° and 360° headsets.`,
-		d: `Anime VR porn and hentai VR: ${N} animated & CGI scenes for Quest, Pico and PC VR. Free previews, newest first.` },
-	mature: { t: `Mature VR Porn: ${N} Older Women Scenes in 8K`, h1: 'Mature VR Porn',
-		lead: `${N} mature VR porn scenes with experienced older women — filmed in up to 8K 180° so they look straight at you. Also see our much bigger <a href="/category/milf/">MILF VR porn</a> section.`,
-		d: `Mature VR porn: ${N} scenes with older women in 8K 180° VR. Free trailers, then the full videos in your headset.` },
-	'8k-vr-porn': { t: `8K VR Porn: ${N} Scenes in Full 8K Resolution`, h1: '8K VR Porn',
-		lead: `${N} VR porn scenes shot in 8K — the sharpest stereo video you can play on a Quest 3, Pico 4 or PC headset today.`,
-		d: `8K VR porn: ${N} scenes in full 8K 180° resolution from VR Bangers, VRSmash and more. Watch free trailers first.` },
-	ebony: { t: `Ebony VR Porn: ${N} Black Babes in 8K VR`, h1: 'Ebony VR Porn',
-		lead: `${N} ebony VR porn scenes with Black performers, in up to 8K 180° stereo.`,
-		d: `Ebony VR porn: ${N} scenes with Black babes in 8K 180° VR. Free trailers, newest first.` },
-	pov: { t: `POV VR Porn: ${N} Point-of-View Scenes in 8K`, h1: 'POV VR Porn',
-		lead: `${N} POV VR porn scenes — the camera is your eyes, so everything happens right in front of you in 180° 3D.`,
-		d: `POV VR porn: ${N} point-of-view scenes in 8K 180° 3D. Free trailers from VR Bangers, VRSmash, BlowVR and more.` },
-};
-const mc = MONEY_COPY[c.slug];
-const h1 = mc?.h1 ?? label;
-const desc = mc ? mc.d + (suffix ? ` Page ${page}.` : '') : fitDescription(`${N} ${label} scenes${suffix ? ` (page ${page})` : ''} with free 180° trailers from VR Bangers, AR Porn, VR Conk & VRSmash.`, ['Preview each scene, then stream the full video in up to 8K on Quest, Pico or PC VR.'], 'Updated daily.');
-const title = mc ? (page === 1 ? fitTitle(mc.t, ' | DudeVR') : fitTitle(`${mc.h1}${suffix}`, `: ${N} Scenes | DudeVR`, ' | DudeVR')) : fitTitle(`${label}${suffix}`, `: ${N} Scenes in 8K | DudeVR`, ` – ${N} Scenes | DudeVR`, ' | DudeVR');
 // Facts for the lead + the data block (unique per category: real counts, not boilerplate).
 const tally = (f: (x: any) => string[]) => { const m = new Map<string, number>(); for (const x of all) for (const k of f(x)) m.set(k, (m.get(k) || 0) + 1); return [...m.entries()].sort((a, b) => b[1] - a[1]); };
 const topStudios = tally((x) => [x.st]).slice(0, 4);
@@ -50,6 +27,12 @@ const topModels = tally((x) => x.m).slice(0, 8);
 const avgMin = all.length ? Math.round(all.reduce((a, x) => a + (x.len || 0), 0) / all.length / 60) : 0;
 const share8k = all.length ? Math.round((100 * all.filter((x) => x.res === '8K' || x.res === '12K').length) / all.length) : 0;
 const withTrailer = all.filter((x) => x.mp4).length;
+const mc = moneyCopy(c.slug, { N, count, freeFull, share8k, avgMin });
+const h1 = mc?.h1 ?? label;
+// Page 2+ starts with the page number, so a long money description can be shortened at the end without colliding.
+const desc = mc ? (page === 1 ? mc.d : fitDescription(`Page ${page}: ${mc.d}`)) : fitDescription(`${N} ${label} scenes${suffix ? ` (page ${page})` : ''} with free 180° trailers from VR Bangers, AR Porn, VR Conk & VRSmash.`, ['Preview each scene, then stream the full video in up to 8K on Quest, Pico or PC VR.'], 'Updated daily.');
+const title = mc ? (page === 1 ? fitTitle(mc.t, ' | DudeVR') : fitTitle(`${mc.h1}${suffix}`, `: ${N} Scenes | DudeVR`, ' | DudeVR')) : fitTitle(`${label}${suffix}`, `: ${N} Scenes in 8K | DudeVR`, ` – ${N} Scenes | DudeVR`, ' | DudeVR');
+const faqLd = page === 1 && mc?.faq ? [{ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: mc.faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) }] : [];
 const noindex = !catIndexable(c.slug);
 // Related categories: co-occurring tags in this category, money pages always first.
 const co = new Map<string, number>();
@@ -58,7 +41,7 @@ const relCats = [...co.entries()].sort((a, b) => b[1] - a[1]).map(([s]) => catBy
 const money = MONEY.filter((m) => !m.href.includes(`/${c.slug}/`));
 ---
 <Base title={title} description={desc} path={path} nav="cats" activeChip={c.slug} noindex={noindex}
-	jsonld={[jsonCrumbs([{ name: 'Categories', path: '/category-archive/' }, { name: c.name, path: base }]), jsonItemList(items)]}>
+	jsonld={[jsonCrumbs([{ name: 'Categories', path: '/category-archive/' }, { name: c.name, path: base }]), jsonItemList(items), ...faqLd]}>
 	<Crumbs items={[{ name: 'Categories', href: '/category-archive/' }, { name: c.name }]} />
 	<div class="ahead">
 		<span class="av" style="border-radius:16px;transform:rotate(-4deg)"><img src={termImage(byCat.get(c.slug))} alt="" /></span>
@@ -87,6 +70,14 @@ const money = MONEY.filter((m) => !m.href.includes(`/${c.slug}/`));
 					Most of them come from {topStudios.map(([st, n], i) => <>{i > 0 && (i === topStudios.length - 1 ? ' and ' : ', ')}<a href={`/studio/${st}/`}>{studioName(st)}</a> ({n})</>)}.</p>
 				{topModels.length > 2 && <p>Performers with the most {label.toLowerCase()} scenes: {topModels.map(([m, n], i) => <>{i > 0 && ', '}<a href={`/model/${m}/`}>{modelName(m)}</a> ({n})</>)}.</p>}
 				{relCats.length > 3 && <p>People who watch {label.toLowerCase()} also browse {relCats.slice(0, 5).map((r, i) => <>{i > 0 && (i === 4 ? ' and ' : ', ')}<a href={`/category/${r!.slug}/`}>{r!.name.toLowerCase()}</a></>)}.</p>}
+			</div>
+		</section>
+	)}
+	{faqLd.length > 0 && (
+		<section class="seo-box">
+			<div class="prose">
+				<h2>{h1}: FAQ</h2>
+				{mc!.faq!.map(([q, a]) => <><h3>{q}</h3><p>{a}</p></>)}
 			</div>
 		</section>
 	)}

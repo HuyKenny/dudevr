@@ -30,7 +30,7 @@ const fallback = n ? `<p>${m.name} has ${n} VR scene${n > 1 ? 's' : ''} on DudeV
 	<Crumbs items={[{ name: 'Models', href: '/models/' }, { name: m.name }]} />
 	<div class="ahead">
 		<span class="av"><img src={m.img || '/mascot-sticker.png'} alt={m.name} /></span>
-		<div><h1>{m.name}{suffix}</h1><p>{n} VR scene{n === 1 ? '' : 's'} · {studiosOf.map(studioName).join(' · ')}</p></div>
+		<div><h1>{m.name} VR Porn{suffix}</h1><p>{n} VR scene{n === 1 ? '' : 's'} · {studiosOf.map(studioName).join(' · ')}</p></div>
 	</div>
 	<div class="more-cats">{topCats.map((c) => <a class="chip" href={`/category/${c}/`}>{catName(c)}</a>)}</div>
 	<Grid items={items} eagerFirst={page === 1 ? 4 : 0} />

@@ -91,11 +91,15 @@ export const newest = (a: Scene, b: Scene) => (b.d === a.d ? a.s.localeCompare(b
 /** Money pages that get extra internal links everywhere (Bing traffic drivers). */
 export const MONEY = [
 	{ href: '/category/free-vr-porn/', label: 'Free VR Porn' },
-	{ href: '/category/anime/', label: 'Anime VR Porn' },
+	{ href: '/category/anime/', label: 'VR Hentai' },
+	{ href: '/category/best-vr-porn/', label: 'Best VR Porn' },
+	{ href: '/category/passthrough/', label: 'Passthrough AR' },
+	{ href: '/category/trans/', label: 'Trans VR Porn' },
 ];
 
-export const TOP_CATS = ['blowjob', 'passthrough', 'milf', 'teen', 'cosplay', 'parody', 'anal', 'big-tits', 'asian', 'latina', 'threesome', 'creampie', 'ebony', 'lesbian',
-	'trans', 'gay', 'redhead', 'stockings', 'lingerie', 'anime', 'free-vr-porn', '8k-vr-porn', 'pov', 'massage', 'squirt', 'japanese', 'interracial', 'hentai'];
+// Header chips, ordered by US search demand (Ahrefs 11/2026), money pages first.
+export const TOP_CATS = ['free-vr-porn', 'anime', 'best-vr-porn', 'trans', 'gay', 'passthrough', '8k-vr-porn', 'milf', 'asian', 'blowjob', 'big-ass', 'latina', 'bbw', 'cosplay',
+	'anal', 'creampie', 'ebony', 'pov', 'japanese', 'feet', 'lesbian', 'mature', 'taboo', 'for-women', 'big-tits', 'threesome', 'redhead', 'compilation'];
 
 /** Scene description fallback for scenes without their own prose (VRSmash): factual, varied, no fluff. */
 export function autoDesc(s: Scene): string {

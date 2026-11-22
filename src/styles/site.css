@@ -205,6 +205,13 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .player > img, .player > video, .player iframe { width: 100%; height: 100%; object-fit: cover; border: 0; display: block; }
 .player .start { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 14px; align-items: center; justify-content: center; background: rgba(10, 8, 7, .35); }
 .player .start .modes { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; padding: 0 12px; }
+.player .btn-full { height: 58px; padding: 0 26px; font-size: 18px; max-width: calc(100% - 24px); white-space: normal; text-align: center; line-height: 1.15; }
+.player .btn-preview { background: rgba(10, 8, 7, .72); color: var(--paper); border-color: var(--paper); box-shadow: none; height: 38px; font-size: 13px; }
+.player-cta { position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 4; display: block; background: var(--lemon); color: var(--ink); border: 2px solid #000; border-radius: 12px; box-shadow: 4px 4px 0 #000; padding: 11px 14px; font: 800 15px/1.25 var(--body); text-align: center; animation: ctaIn .35s ease-out; }
+.player-cta[hidden] { display: none; }
+.player.has-controls .player-cta { bottom: 60px; }
+@keyframes ctaIn { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (max-width: 520px) { .player .btn-full { height: 50px; font-size: 15px; padding: 0 16px; } .player-cta { font-size: 13px; padding: 9px 10px; left: 8px; right: 8px; bottom: 8px; } }
 .player .note { position: absolute; left: 12px; bottom: 10px; font-size: 12px; color: var(--paper); background: rgba(10, 8, 7, .7); padding: 4px 8px; border-radius: 6px; }
 .dvr-vr-stage { position: absolute; inset: 0; }
 .dvr-vr-stage canvas { width: 100% !important; height: 100% !important; display: block; touch-action: none; cursor: grab; }
@@ -316,7 +323,8 @@ html.need-gate .gate { display: flex; }
 	.gate img { display: none; }
 	.mini { grid-template-columns: 130px 1fr; }
 	.seo-box { padding: 18px; }
-	.ahead .actions { margin-left: 0; }
+	.ahead .actions { margin-left: 0; width: 100%; }
+	.ahead .actions .btn { white-space: normal; height: auto; min-height: 50px; padding: 8px 16px; width: 100%; justify-content: center; text-align: center; }
 }
 @media (max-width: 420px) { .grid { grid-template-columns: 1fr; } .card .sub .models { display: inline; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }

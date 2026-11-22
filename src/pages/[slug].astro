@@ -48,6 +48,10 @@ const benefits = s && scene ? [
 	studio && studio.count > 1 ? `Unlocks all ${studio.count.toLocaleString('en-US')}+ ${studioName(s.st)} scenes` : 'Instant access after sign-up',
 ] : [];
 const ctaVerb = ['Watch the full scene', 'Get the full VR video', 'Unlock the full scene'][scene ? hash(s.s) % 3 : 0];
+// Partner CTAs: "free" only where the full scene really is free (flag from sync), never as bait.
+const isFree = !!(scene && (s as any).free);
+const fullLabel = isFree ? 'Watch Full Video FREE in VR' : 'Watch Full Video in VR';
+const barLabel = scene ? `Liked the preview? Watch the full ${s.len ? `${mins(s.len)}-min ` : ''}scene in ${s.res} on ${studioName(s.st)}${isFree ? ' for free' : ''} →` : '';
 ---
 {scene ? (
 <Base title={title} description={metaDesc} path={`/${s.s}/`} jsonld={jsonld} image={abs(s.p || thumb(s))} chips={false} preload={s.p} ogType="video.other" video={s.mp4} published={s.d}>
@@ -57,13 +61,16 @@ const ctaVerb = ['Watch the full scene', 'Get the full VR video', 'Unlock the fu
 			<div class="player" data-scene={s.s} data-mp4={s.mp4} data-emb={s.emb}>
 				<img src={s.p || thumb(s)} alt={`${s.t} – VR porn trailer`} width="960" height="540" fetchpriority="high" />
 				<div class="start">
-					<div class="modes">
-						{s.mp4 && <button class="btn btn-lemon btn-big" type="button" data-mode="vr"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg>Play 180° trailer</button>}
-						{s.emb && <button class={`btn btn-big${s.mp4 ? '' : ' btn-lemon'}`} type="button" data-mode="flat">{s.mp4 ? 'Studio player' : 'Play trailer'}</button>}
-						{!s.mp4 && !s.emb && <a class="btn btn-lemon btn-big" href={s.aff} rel="sponsored noopener" target="_blank" data-aff="player" data-studio={s.st} data-scene={s.s}>Watch trailer on {studioName(s.st)} ↗</a>}
-					</div>
+					<a class="btn btn-lemon btn-big btn-full" href={s.aff} rel="sponsored noopener" target="_blank" data-aff="player_full" data-studio={s.st} data-scene={s.s}><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>{fullLabel} →</a>
+					{(s.mp4 || s.emb) && (
+						<div class="modes">
+							{s.mp4 && <button class="btn btn-preview" type="button" data-mode="vr">Free 180° preview</button>}
+							{s.emb && !s.mp4 && <button class="btn btn-preview" type="button" data-mode="flat">Free preview</button>}
+						</div>
+					)}
 				</div>
-				{s.mp4 && <span class="note">Interactive 180° · drag, tilt or Enter VR</span>}
+				{s.mp4 && <span class="note">Free 180° preview · drag, tilt or Enter VR</span>}
+				<a class="player-cta" hidden href={s.aff} rel="sponsored noopener" target="_blank" data-aff="player_bar" data-studio={s.st} data-scene={s.s}>{barLabel}</a>
 			</div>
 			<h1>{s.t}</h1>
 			<div class="scene-meta">
@@ -95,7 +102,7 @@ const ctaVerb = ['Watch the full scene', 'Get the full VR video', 'Unlock the fu
 				<h2>{ctaVerb}</h2>
 				<div style="font-weight:600;font-size:14px">on {studioName(s.st)}</div>
 				<ul>{benefits.map((b) => <li>{b}</li>)}</ul>
-				<a class="btn btn-big" href={s.aff} rel="sponsored noopener" target="_blank" data-aff="sidebar" data-studio={s.st} data-scene={s.s}>Watch in VR →</a>
+				<a class="btn btn-big" href={s.aff} rel="sponsored noopener" target="_blank" data-aff="sidebar" data-studio={s.st} data-scene={s.s}>▶ {fullLabel} →</a>
 				<div class="fine">Opens {studio?.domain}. You pay the studio, not us.</div>
 			</div>
 			<div class="upnext">
@@ -118,7 +125,7 @@ const ctaVerb = ['Watch the full scene', 'Get the full VR video', 'Unlock the fu
 	{!s.m[0] && rel.length > 0 && (
 		<section class="sec"><div class="sec-head"><h2>Similar VR scenes</h2></div><Grid items={rel.slice(0, 10)} /></section>
 	)}
-	<div class="sticky-cta"><a class="btn btn-lemon" href={s.aff} rel="sponsored noopener" target="_blank" data-aff="sticky" data-studio={s.st} data-scene={s.s}>Watch full scene on {studioName(s.st)} →</a></div>
+	<div class="sticky-cta"><a class="btn btn-lemon" href={s.aff} rel="sponsored noopener" target="_blank" data-aff="sticky" data-studio={s.st} data-scene={s.s}>▶ {fullLabel} →</a></div>
 	<script is:inline src="/vr/player.js" defer></script>
 </Base>
 ) : (

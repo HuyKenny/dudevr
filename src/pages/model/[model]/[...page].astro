@@ -31,6 +31,7 @@ const fallback = n ? `<p>${m.name} has ${n} VR scene${n > 1 ? 's' : ''} on DudeV
 	<div class="ahead">
 		<span class="av"><img src={m.img || '/mascot-sticker.png'} alt={m.name} /></span>
 		<div><h1>{m.name} VR Porn{suffix}</h1><p>{n} VR scene{n === 1 ? '' : 's'} · {studiosOf.map(studioName).join(' · ')}</p></div>
+		{n > 0 && <div class="actions"><a class="btn btn-lemon btn-big" href={all[0].aff} rel="sponsored noopener" target="_blank" data-aff="model_cta" data-studio={all[0].st} data-scene={all[0].s}>▶ Watch {m.name}'s Full Videos in VR →</a></div>}
 	</div>
 	<div class="more-cats">{topCats.map((c) => <a class="chip" href={`/category/${c}/`}>{catName(c)}</a>)}</div>
 	<Grid items={items} eagerFirst={page === 1 ? 4 : 0} />

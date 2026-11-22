@@ -45,7 +45,7 @@ const jsonld = [jsonCrumbs([{ name: 'Studios', path: '/studios/' }, { name: st.n
 	<div class="ahead">
 		<span class="av" style={`border-radius:16px;background:${STUDIO_COLOR[st.slug]};display:grid;place-items:center;font:800 30px var(--display);color:var(--ink)`}>{st.name.slice(0, 2)}</span>
 		<div><h1>{st.name}{suffix}</h1><p>{STUDIO_TAGLINE[st.slug]} · {n.toLocaleString('en-US')} scenes · our score <b style="color:var(--lemon)">{score}/10</b></p></div>
-		<div class="actions"><a class="btn btn-lemon btn-big" href={st.aff} rel="sponsored noopener" target="_blank" data-aff="studio_banner" data-studio={st.slug}>Visit {st.name} →</a></div>
+		<div class="actions"><a class="btn btn-lemon btn-big" href={st.aff} rel="sponsored noopener" target="_blank" data-aff="studio_banner" data-studio={st.slug}>▶ Watch All {n.toLocaleString('en-US')}+ {st.name} Videos in VR →</a></div>
 	</div>
 	{isExtra ? (
 		<>

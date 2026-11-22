@@ -75,7 +75,7 @@
         b.onclick = function () {
           if (sess) { sess.end(); return; }
           navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor'] }).then(function (s) {
-            sess = s; s.addEventListener('end', function () { sess = null; b.textContent = 'Enter VR'; });
+            sess = s; s.addEventListener('end', function () { sess = null; b.textContent = 'Enter VR'; wrap.dispatchEvent(new Event('dvr:xrend')); });
             renderer.xr.setReferenceSpaceType('local'); return renderer.xr.setSession(s);
           }).then(function () { b.textContent = 'Exit VR'; track('webxr', wrap); });
         };
@@ -100,7 +100,11 @@
     var gl = false; try { var c = document.createElement('canvas'); gl = !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl'))); } catch (e) {}
     var vrBtn = wrap.querySelector('[data-mode="vr"]');
     if (vrBtn && !wrap.dataset.mp4) vrBtn.remove();
-    else if (vrBtn && !gl) { vrBtn.setAttribute('data-mode', 'video'); vrBtn.lastChild.textContent = 'Play trailer'; }
+    else if (vrBtn && !gl) { vrBtn.setAttribute('data-mode', 'video'); vrBtn.textContent = 'Free preview'; }
+    // Partner CTA bar: shown 8 s into the preview (and right after leaving WebXR); the text is rendered server-side.
+    var bar = wrap.querySelector('.player-cta'), barT = 0;
+    function showBar(now) { if (!bar || !bar.hidden) return; clearTimeout(barT); barT = setTimeout(function () { bar.hidden = false; wrap.appendChild(bar); }, now ? 0 : 8000); }
+    wrap.addEventListener('dvr:xrend', function () { showBar(true); });
     wrap.addEventListener('click', function (e) {
       var b = e.target.closest('[data-mode]'); if (!b) return;
       e.preventDefault();
@@ -110,16 +114,16 @@
         var grant = Promise.resolve('default');
         try { if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') grant = DeviceOrientationEvent.requestPermission().catch(function () { return 'denied'; }); } catch (err) {}
         b.textContent = 'Loading 180° preview…'; b.disabled = true;
-        loadThree().then(function () { start && start.remove(); poster && poster.remove(); vr(wrap, grant); track('vr180', wrap); })
+        loadThree().then(function () { start && start.remove(); poster && poster.remove(); vr(wrap, grant); track('vr180', wrap); showBar(); })
           .catch(function () { b.textContent = '180° preview unavailable'; });
       } else if (mode === 'video') {
         // No WebGL: play the SBS file flat and show only the left eye (video is 2× wide, right half clipped).
         start && start.remove(); poster && poster.remove();
         var v = document.createElement('video'); v.src = wrap.dataset.mp4; v.autoplay = true; v.controls = true; v.playsInline = true; v.loop = true;
         v.style.cssText = 'width:200%;max-width:none;height:100%;object-fit:cover;object-position:left center';
-        wrap.style.overflow = 'hidden'; wrap.appendChild(v); track('flat_mp4', wrap);
+        wrap.style.overflow = 'hidden'; wrap.appendChild(v); track('flat_mp4', wrap); wrap.classList.add('has-controls'); showBar();
       } else if (mode === 'flat') {
-        start && start.remove(); poster && poster.remove(); flat(wrap); track('embed', wrap);
+        start && start.remove(); poster && poster.remove(); flat(wrap); track('embed', wrap); wrap.classList.add('has-controls'); showBar();
       }
     });
   }

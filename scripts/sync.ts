@@ -79,7 +79,10 @@ function cleanProse(html: string): string {
 	h = h.replace(/<a\s[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi, (_, href: string, txt: string) => {
 		const internal = href.startsWith('/') || /^https?:\/\/(www\.)?dudevr\.com\//.test(href);
 		const path = href.replace(/^https?:\/\/(www\.)?dudevr\.com/, '');
-		return internal ? `<a href="${path}">${txt}</a>` : txt;
+		if (internal) return `<a href="${path}">${txt}</a>`;
+		// Editorial outbound links (e.g. the dudevr→ecamx linkbuilding pair) stay; inline affiliate links don't.
+		if (/^https?:\/\//.test(href) && !/link_data=|[?&](a|aff|aff_id|tracking)=/i.test(href)) return `<a href="${href}">${txt}</a>`;
+		return txt;
 	});
 	h = h.replace(/<(\/?)(p|br|h2|h3|strong|b|em|i|ul|ol|li|a)(\s[^>]*)?>/gi, (m, slash, tag, attrs) => {
 		tag = tag.toLowerCase();

@@ -30,7 +30,7 @@ jobs:
       QUICK: ${{ (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.quick)) && '1' || '0' }}
       HAS_CF: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           persist-credentials: false
       - name: Cost guard - the repo must stay public (private repos burn the shared 2 000 free minutes)

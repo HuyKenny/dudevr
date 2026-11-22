@@ -19,6 +19,6 @@ const list = studios.filter((s) => s.count > 0).sort((a, b) => Number(STUDIO_SCO
 	</div>
 	{list.map((s) => (
 		<section class="sec"><div class="sec-head"><h2><a href={`/studio/${s.slug}/`}>{s.name}</a></h2><span class="count">{s.count.toLocaleString('en-US')} scenes</span><a class="more" href={`/studio/${s.slug}/`}>All →</a></div>
-			<Grid items={(byStudio.get(s.slug) ?? []).slice(0, 4)} showStudio={false} /></section>
+			<Grid items={(byStudio.get(s.slug) ?? []).slice(0, 5)} showStudio={false} /></section>
 	))}
 </Base>

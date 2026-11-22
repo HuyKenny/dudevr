@@ -11,11 +11,11 @@ const pool = playable.filter((s) => s.st !== 'vrb-gay' && s.st !== 'vrb-trans').
 const hero = pool[hash(today) % pool.length];
 // Newest, but interleaved by studio so one prolific feed (VRSmash) can't take the whole row.
 const buckets = new Map<string, typeof scenes>();
-for (const x of scenes.slice(0, 600)) { const b = buckets.get(x.st) ?? []; if (b.length < 8) { b.push(x); buckets.set(x.st, b); } }
+for (const x of scenes.slice(0, 600)) { const b = buckets.get(x.st) ?? []; if (b.length < 10) { b.push(x); buckets.set(x.st, b); } }
 const newest: typeof scenes = [];
-for (let i = 0; newest.length < 24 && i < 8; i++) for (const b of buckets.values()) if (b[i] && newest.length < 24) newest.push(b[i]);
+for (let i = 0; newest.length < 20 && i < 10; i++) for (const b of buckets.values()) if (b[i] && newest.length < 20) newest.push(b[i]);
 const vrb = studios.filter((s) => s.count > 0);
-const rows = ['vr-bangers', 'ar-porn', 'vr-conk', 'vrsmash'].map((slug) => ({ st: studios.find((s) => s.slug === slug)!, items: (byStudio.get(slug) ?? []).slice(0, 8) }));
+const rows = ['vr-bangers', 'ar-porn', 'vr-conk', 'vrsmash'].map((slug) => ({ st: studios.find((s) => s.slug === slug)!, items: (byStudio.get(slug) ?? []).slice(0, 10) }));
 const topCats = ['blowjob', 'passthrough', 'cosplay', 'milf', 'asian', 'anal', 'big-tits', 'parody', 'latina', 'threesome', 'teen', 'lesbian']
 	.map((s) => catBySlug.get(s)).filter((c) => c && c.count > 0);
 const topModels = models.slice(0, 18);

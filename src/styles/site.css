@@ -93,7 +93,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .tag-sticker { display: inline-block; font: 800 11px var(--display); text-transform: uppercase; letter-spacing: .05em; padding: 4px 8px; border-radius: 6px; background: var(--coral); color: var(--ink); border: 2px solid #000; transform: rotate(-3deg); box-shadow: 2px 2px 0 #000; }
 
 /* ── Video grid + card ─────────────────────────────── */
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 22px 16px; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 16px; } /* 10/20/40 cards = always full rows */
+@media (min-width: 1000px) { .grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
 .grid.tight { grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); }
 .card { position: relative; min-width: 0; }
 .card .th { position: relative; display: block; aspect-ratio: 16 / 9; border-radius: var(--r); overflow: hidden; background: var(--ink-3); border: 2px solid #000; transition: transform .15s, box-shadow .15s; }
@@ -302,7 +303,7 @@ html.need-gate .gate { display: flex; }
 	.top-actions .btn-label { display: none; }
 	.top-actions .btn { padding: 0 11px; }
 	.burger { display: grid; }
-	.grid { grid-template-columns: 1fr 1fr; gap: 16px 10px; }
+	.grid { gap: 16px 10px; }
 	.card h3 { font-size: 13.5px; }
 	.card .sub { font-size: 12px; }
 	.card .sub .studio + .dot, .card .sub .models { display: none; }

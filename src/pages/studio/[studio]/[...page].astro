@@ -10,11 +10,11 @@ export function getStaticPaths() {
 		const own = pages(byStudio.get(st.slug) ?? []);
 		const out = own.map((p) => ({ params: { studio: st.slug, page: pageParam(p.page) }, props: { ...p, st, extra: [] as any[], totalAll: p.total } }));
 		if (st.slug === 'vrsmash') {
-			const ext = partner.slice(0, 120 * 36);
-			const extraPages = Math.ceil(ext.length / 36);
+			const ext = partner.slice(0, 120 * 40);
+			const extraPages = Math.ceil(ext.length / 40);
 			const totalAll = own.length + extraPages;
 			out.forEach((o) => (o.props.totalAll = totalAll));
-			for (let i = 0; i < extraPages; i++) out.push({ params: { studio: st.slug, page: pageParam(own.length + i + 1) }, props: { page: own.length + i + 1, total: own.length, items: [], st, extra: ext.slice(i * 36, i * 36 + 36), totalAll } });
+			for (let i = 0; i < extraPages; i++) out.push({ params: { studio: st.slug, page: pageParam(own.length + i + 1) }, props: { page: own.length + i + 1, total: own.length, items: [], st, extra: ext.slice(i * 40, i * 40 + 40), totalAll } });
 		}
 		return out;
 	});

@@ -112,11 +112,11 @@ const ctaVerb = ['Watch the full scene', 'Get the full VR video', 'Unlock the fu
 	{s.m[0] && (
 		<section class="sec">
 			<div class="sec-head"><h2>More with <a href={`/model/${s.m[0]}/`}>{modelName(s.m[0])}</a> &amp; similar scenes</h2></div>
-			<Grid items={rel.slice(0, 12)} />
+			<Grid items={rel.slice(0, 10)} />
 		</section>
 	)}
 	{!s.m[0] && rel.length > 0 && (
-		<section class="sec"><div class="sec-head"><h2>Similar VR scenes</h2></div><Grid items={rel.slice(0, 12)} /></section>
+		<section class="sec"><div class="sec-head"><h2>Similar VR scenes</h2></div><Grid items={rel.slice(0, 10)} /></section>
 	)}
 	<div class="sticky-cta"><a class="btn btn-lemon" href={s.aff} rel="sponsored nofollow noopener" target="_blank" data-aff="sticky" data-studio={s.st} data-scene={s.s}>Watch full scene on {studioName(s.st)} →</a></div>
 	<script is:inline src="/vr/player.js" defer></script>

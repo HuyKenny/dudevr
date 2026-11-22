@@ -3,7 +3,6 @@ dist/
 .astro/
 data/raw/
 src/data/*.json
-!src/data/thumbs.json
 .env
 .env.*
 .wrangler/

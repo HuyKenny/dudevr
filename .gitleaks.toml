@@ -1,0 +1,13 @@
+# Public-by-design values only. Anything else that gitleaks finds is a real problem.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Affiliate link_data tokens (they sit in every outbound link on the live site) and the IndexNow key (served publicly as /<key>.txt)"
+regexes = [
+  '''eyJvZmZlcl9pZCI[A-Za-z0-9+/=]+''',
+  '''e32dcc56797d6a2aa353cf4c19499a86''',
+]
+paths = [
+  '''src/data/thumbs\.json''',
+]
